@@ -105,7 +105,7 @@ DATABASE_URL     # cadena Neon con sslmode=require
 JWT_SECRET       # >= 32 caracteres aleatorios
 JWT_EXPIRES_IN   # ej. 7d
 PORT             # Render inyecta su propio puerto
-CORS_ORIGIN      # URL del frontend (Vercel)
+CORS_ORIGIN      # URL del frontend (Cloudflare Workers)
 ```
 
 `main.ts`: prefijo global `/api`, CORS con origen único permitido, Helmet, listening en `process.env.PORT`.

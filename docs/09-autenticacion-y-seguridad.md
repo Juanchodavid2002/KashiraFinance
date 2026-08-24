@@ -93,7 +93,7 @@ DATABASE_URL=postgresql://...        # Neon, sslmode=require
 JWT_SECRET=<random >=32 chars>
 JWT_EXPIRES_IN=7d
 PORT=3000
-CORS_ORIGIN=https://kashira.vercel.app
+CORS_ORIGIN=https://kashira-fin.tu-subdominio.workers.dev
 ```
 
 - Generación de `JWT_SECRET`: `openssl rand -base64 48`.

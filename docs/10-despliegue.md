@@ -8,24 +8,30 @@ Costo objetivo: **$0/mes** usando planes gratuitos.
 
 ```mermaid
 flowchart TD
-    G["GitHub<br/>repositorio único (monorepo)"] -->|push a main| V["VERCEL — frontend/"]
+    G["GitHub<br/>repositorio único (monorepo)"] -->|push a main| C["CLOUDFLARE WORKERS — frontend/"]
     G -->|push a main| R["RENDER — backend/"]
-    V -->|HTTPS| U[Usuario]
+    C -->|HTTPS| U[Usuario]
     R -->|"Prisma → sslmode=require"| N[("NEON PostgreSQL")]
 ```
 
-- Vercel y Render con **root directory** configurado: `frontend/` y `backend/` respectivamente.
+- Render con **root directory** configurado: `backend/`.
+- Cloudflare Workers Builds conectado al repo: build desde la raíz del monorepo; config declarativa en `wrangler.jsonc` (raíz).
 - Deploy automático en push a `main` (ambos servicios).
 
-## 2. Frontend — Vercel
+## 2. Frontend — Cloudflare Workers
+
+Workers Builds conectado al repositorio: deploy automático en push a `main`.
 
 | Config | Valor |
 |--------|-------|
-| Framework preset | Angular |
-| Root directory | `frontend` |
-| Build command | `npm run build` (config production) |
-| Output | `dist/frontend/browser` |
+| Proyecto | `kashira-fin` |
+| Build command | `cd frontend && npm ci && npm run build` |
+| Deploy command | `npx wrangler deploy` |
+| Assets (output) | `./frontend/dist/frontend/browser` (declarado en `wrangler.jsonc`) |
+| SPA fallback | `not_found_handling: single-page-application` |
 | Variable | `environment.ts` producción con URL de la API en Render |
+
+La configuración vive íntegramente en `wrangler.jsonc`, versionado en la raíz del monorepo.
 
 ## 3. Backend — Render (Web Service free)
 
@@ -52,10 +58,10 @@ flowchart TD
 |----------|-----------|------------|
 | `DATABASE_URL` | PostgreSQL 18 local (`kashira_dev`) | Neon (connection pooler, `sslmode=require`) |
 | `JWT_SECRET` | local `.env` (cualquier valor fuerte) | secreto fuerte en dashboard Render |
-| `CORS_ORIGIN` | `http://localhost:4200` | URL Vercel |
+| `CORS_ORIGIN` | `http://localhost:4200` | URL workers.dev del Worker |
 | `JWT_EXPIRES_IN` / `PORT` | `7d` / 3000 | `7d` / auto Render |
 
-`.env.example` versionado sin valores reales; secretos reales solo en dashboards (Render/Vercel) y archivo local fuera de Git.
+`.env.example` versionado sin valores reales; secretos reales solo en dashboards (Render/Cloudflare) y archivo local fuera de Git.
 
 ## 6. Límites del plan gratuito (documentados, no asumidos ilimitados)
 
@@ -63,7 +69,7 @@ flowchart TD
 |----------|-----------------|----------------------|
 | **Render** free | ~750 h/mes; **spin-down tras ~15 min** de inactividad; cold start ~30–60 s en siguiente request | Primera consulta lenta tras pausa; health check periódico opcional como mitigación (respeta fair-use). |
 | **Neon** free | ~0.5 GB almacenamiento; compute autosuspende tras inactividad (~5 min); cold query ~+500 ms | Suficiente para MVP personal; cold start aceptado. |
-| **Vercel** hobby | Ancho de banda ~100 GB/mes; uso no comercial | SPA liviana: holgado. |
+| **Cloudflare Workers** free | ~100k invocaciones/día del Worker; las peticiones a assets estáticos son gratuitas e ilimitadas; sin spin-down | SPA estática servida como assets: holgado. |
 | **GitHub** | Repos privados gratis ilimitados | Sin impacto. |
 
 Revisar los valores vigentes en cada dashboard al momento del deploy (los planes cambian).
@@ -73,8 +79,8 @@ Revisar los valores vigentes en cada dashboard al momento del deploy (los planes
 1. Crear repo GitHub y push inicial.
 2. Crear proyecto Neon; copiar connection string; crear tablas vía `prisma migrate deploy` local apuntando a prod.
 3. Crear Web Service en Render (backend) con variables de entorno.
-4. Importar proyecto en Vercel (frontend) apuntando root a `frontend/`.
-5. Actualizar `CORS_ORIGIN` (Render) y `environment.apiUrl` (Vercel) con las URLs definitivas.
+4. Crear el proyecto en Cloudflare dashboard (Workers Builds) conectado al repo; confirmar build/deploy commands de la sección 2.
+5. Actualizar `CORS_ORIGIN` (Render) con la URL workers.dev definitiva; verificar `environment.apiUrl`.
 6. Verificar E2E desde celular y computador.
 
 ## 8. Backups (estrategia futura)

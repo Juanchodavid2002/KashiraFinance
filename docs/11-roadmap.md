@@ -64,13 +64,13 @@ Construcción incremental. Cada fase se verifica antes de avanzar (errores, prue
 
 **Salida:** el dashboard responde "¿cómo están mis finanzas este mes?" de un vistazo.
 
-## FASE 7 — Producción
+## FASE 7 — Producción ✅
 
-- [ ] Repo GitHub + push
-- [ ] Neon prod + Render + Vercel configurados
-- [ ] CORS y variables de entorno de producción
-- [ ] Migraciones ejecutadas vía deploy
-- [ ] Pruebas E2E desde celular, tablet y computador
+- [x] Repo GitHub + push
+- [x] Neon prod + Render + Cloudflare Workers configurados (ADR-016: cambio de Vercel a Cloudflare Workers)
+- [x] CORS y variables de entorno de producción
+- [x] Migraciones ejecutadas vía deploy
+- [x] Pruebas E2E desde celular, tablet y computador
 
 **Salida:** Kashira Finance accesible públicamente desde cualquier dispositivo.
 

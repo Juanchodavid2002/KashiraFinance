@@ -23,12 +23,12 @@ Convertir a Kashira Finance en una plataforma integral de gestión financiera qu
 | Base de datos | PostgreSQL (Neon) |
 | ORM | Prisma |
 | Autenticación | JWT + bcrypt |
-| Despliegue | Vercel (frontend) · Render (backend) · Neon (BD) |
+| Despliegue | Cloudflare Workers (frontend) · Render (backend) · Neon (BD) |
 
 ## Arquitectura
 
 ```
-        Vercel                    Render                  Neon
+     Cloudflare                   Render                  Neon
    ┌─────────────┐    HTTPS   ┌─────────────┐   Prisma   ┌──────────┐
    │   Angular   │ ─────────▶ │    NestJS   │ ─────────▶ │PostgreSQL│
    │  frontend/  │ ◀───────── │  backend/   │ ◀───────── │          │
@@ -95,7 +95,7 @@ Nunca subir `.env` reales al repositorio (ver `.gitignore`). Referencia sin secr
 
 ## Estado actual
 
-**Fase 6 — Dashboard** completada. Siguiente: producción (Fase 7). Ver [Roadmap](docs/11-roadmap.md).
+**Fase 7 — Producción** completada. Siguiente: seguridad y mantenimiento (Fase 8). Ver [Roadmap](docs/11-roadmap.md).
 
 ## Roadmap (resumen)
 
@@ -105,5 +105,5 @@ Nunca subir `.env` reales al repositorio (ver `.gitignore`). Referencia sin secr
 4. Gastos (CRUD, filtros, categorías) ✅
 5. Ingresos ✅
 6. Dashboard (resumen mensual, gráficos) ✅
-7. Producción (Vercel + Render + Neon)
+7. Producción (Cloudflare Workers + Render + Neon) ✅
 8. Seguridad y mantenimiento (rate limiting, backups, monitoreo)

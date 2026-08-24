@@ -45,7 +45,7 @@ Detalle completo en `09-autenticacion-y-seguridad.md`.
 
 | ID | Requerimiento |
 |----|---------------|
-| RNF-D1 | Despliegue en free tiers: Vercel (frontend), Render (backend), Neon (BD). Costo objetivo: $0/mes. |
+| RNF-D1 | Despliegue en free tiers: Cloudflare Workers (frontend), Render (backend), Neon (BD). Costo objetivo: $0/mes. |
 | RNF-D2 | Spin-down de Render (~15 min de inactividad) y autosuspend de Neon aceptados y documentados. |
 | RNF-D3 | Health check endpoint (`GET /api/health`) sin autenticación para monitoreo. |
 

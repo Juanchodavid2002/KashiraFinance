@@ -25,7 +25,7 @@ Las decisiones aquí registran la fuente de verdad; cambiar una decisión exige 
 
 - **Contexto:** dos aplicaciones (Angular/NestJS) desplegadas independientemente.
 - **Opciones:** monorepo · dos repositorios.
-- **Selección:** monorepo con carpetas `frontend/` y `backend/`; Vercel y Render configuran root directory.
+- **Selección:** monorepo con carpetas `frontend/` y `backend/`; Render usa root directory `backend/` y Cloudflare Workers Builds compila el frontend desde la raíz (ver ADR-016).
 - **Justificación:** un solo lugar para docs, issues y versionado; commits atómicos que cruzan front/back; sin necesidad de Nx/turborepo para esta escala.
 - **Consecuencias:** CI/CD por servicio filtrando cambios por carpeta si luego se necesita.
 
@@ -122,6 +122,14 @@ Las decisiones aquí registran la fuente de verdad; cambiar una decisión exige 
 - **Selección:** PostgreSQL 18.6 local (`localhost:5432`), base `kashira_dev`, rol dedicado `kashira_app` con `CREATEDB` (necesario para el shadow database de `prisma migrate dev`) y contraseña aleatoria solo en `.env`.
 - **Justificación:** iteración rápida sin latencia ni cold starts; mismo motor y versión mayor que producción; Prisma se comporta idéntico.
 - **Consecuencias:** producción continúa en Neon (`sslmode=require`, pooler); riesgo de divergencia mínimo; backups locales manuales hasta definir estrategia en Fase 8.
+
+## ADR-016 — Hosting del frontend en Cloudflare Workers
+
+- **Contexto:** la documentación original planteaba Vercel para el frontend; al ejecutar la Fase 7 se evaluó el proveedor real de despliegue y se migró antes del go-live (sin usuarios afectados).
+- **Opciones:** Vercel hobby · Cloudflare Pages · Cloudflare Workers Builds (static assets).
+- **Selección:** Cloudflare Workers Builds con `wrangler.jsonc` versionado en la raíz del monorepo.
+- **Justificación:** flujo de despliegue más simple y directo: un único archivo declarativo en el repo define build, deploy, assets y comportamiento SPA, sin configuración dispersa en dashboards.
+- **Consecuencias:** `CORS_ORIGIN` (Render) debe apuntar al dominio `*.workers.dev` del frontend; deploy automático en push a `main` vía Workers Builds; un dominio propio futuro exige actualizar `wrangler.jsonc` y `CORS_ORIGIN`.
 
 ---
 

@@ -16,8 +16,8 @@
 
 ```mermaid
 flowchart TD
-    U[Usuario - navegador / móvil] -->|HTTPS| V[Vercel]
-    V["VERCEL<br/>Angular + TypeScript<br/>Frontend SPA"] -->|HTTPS + JWT Bearer| R["RENDER<br/>NestJS + TypeScript<br/>API REST"]
+    U[Usuario - navegador / móvil] -->|HTTPS| CF["CLOUDFLARE WORKERS<br/>Angular + TypeScript<br/>Frontend SPA"]
+    CF -->|HTTPS + JWT Bearer| R["RENDER<br/>NestJS + TypeScript<br/>API REST"]
     R -->|Prisma ORM| N[("NEON<br/>PostgreSQL")]
 ```
 
@@ -67,7 +67,7 @@ KashiraFinance/
 └── README.md
 ```
 
-Despliegue: Vercel y Render configuran **root directory** (`frontend/` y `backend/` respectivamente) sobre este mismo repositorio.
+Despliegue: ambos servicios operan sobre este mismo repositorio. Render usa **root directory** `backend/`; Cloudflare Workers Builds compila el frontend desde la raíz del monorepo (`cd frontend && npm ci && npm run build`) y despliega según la config declarativa de `wrangler.jsonc` (raíz) — ver ADR-016.
 
 ## 5. Flujo de una petición típica (crear gasto)
 
