@@ -5,19 +5,38 @@ import { guestGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
   {
+    path: '',
+    title: 'KashiraFinance — Toma el control de tus finanzas',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./landing/landing').then((m) => m.Landing),
+  },
+  {
     path: 'login',
+    title: 'Iniciar sesión — KashiraFinance',
     canActivate: [guestGuard],
     loadComponent: () =>
       import('./auth/login/login').then((m) => m.Login),
   },
   {
     path: 'register',
+    title: 'Crear cuenta — KashiraFinance',
     canActivate: [guestGuard],
     loadComponent: () =>
       import('./auth/register/register').then((m) => m.Register),
   },
   {
-    path: '',
+    path: 'forgot-password',
+    title: 'Recuperar contraseña — KashiraFinance',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./auth/forgot-password/forgot-password').then(
+        (m) => m.ForgotPassword,
+      ),
+  },
+  {
+    path: 'app',
+    title: 'Dashboard — KashiraFinance',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./layout/shell/shell').then((m) => m.Shell),

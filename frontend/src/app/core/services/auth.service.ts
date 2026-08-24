@@ -7,8 +7,11 @@ import { environment } from '../../../environments/environment';
 import type {
   AuthResponse,
   LoginPayload,
+  MessageResponse,
   RegisterPayload,
+  ResetPasswordPayload,
   User,
+  VerifyResetCodePayload,
 } from '../models/auth.models';
 
 const TOKEN_KEY = 'kashira_token';
@@ -41,6 +44,21 @@ export class AuthService {
     return this.http
       .post<AuthResponse>(`${this.apiUrl}/auth/login`, payload)
       .pipe(tap((response) => this.storeSession(response)));
+  }
+
+  forgotPassword(email: string) {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/auth/forgot-password`, { email });
+  }
+
+  verifyResetCode(payload: VerifyResetCodePayload) {
+    return this.http.post<MessageResponse>(
+      `${this.apiUrl}/auth/verify-reset-code`,
+      payload,
+    );
+  }
+
+  resetPassword(payload: ResetPasswordPayload) {
+    return this.http.post<MessageResponse>(`${this.apiUrl}/auth/reset-password`, payload);
   }
 
   logout(): void {

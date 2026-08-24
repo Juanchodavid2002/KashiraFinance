@@ -20,3 +20,18 @@ export interface RegisterPayload {
   email: string;
   password: string;
 }
+
+export interface MessageResponse {
+  message: string;
+}
+
+export interface VerifyResetCodePayload {
+  email: string;
+  code: string;
+}
+
+export interface ResetPasswordPayload {
+  email: string;
+  code: string;
+  newPassword: string;
+}

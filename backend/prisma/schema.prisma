@@ -23,11 +23,26 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  expenses   Expense[]
-  incomes    Income[]
-  categories Category[]
+  expenses            Expense[]
+  incomes             Income[]
+  categories          Category[]
+  passwordResetCodes  PasswordResetCode[]
 
   @@map("users")
+}
+
+model PasswordResetCode {
+  id         String    @id @default(uuid())
+  userId     String
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("password_reset_codes")
 }
 
 model Category {
