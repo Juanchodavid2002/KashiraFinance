@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PaymentMethod {
+  CASH
+  DEBIT_CARD
+  CREDIT_CARD
+  TRANSFER
+  OTHER
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  expenses   Expense[]
+  incomes    Income[]
+  categories Category[]
+
+  @@map("users")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  color     String?
+  icon      String?
+  isDefault Boolean  @default(false)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses  Expense[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@map("categories")
+}
+
+model Expense {
+  id            String        @id @default(uuid())
+  userId        String
+  categoryId    String
+  description   String?
+  amount        Decimal       @db.Decimal(14, 2)
+  expenseDate   DateTime      @db.Date
+  paymentMethod PaymentMethod @default(CASH)
+  notes         String?
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category      Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId, expenseDate(sort: Desc)])
+  @@index([userId, categoryId])
+  @@map("expenses")
+}
+
+model Income {
+  id          String   @id @default(uuid())
+  userId      String
+  description String?
+  amount      Decimal  @db.Decimal(14, 2)
+  incomeDate  DateTime @db.Date
+  source      String?
+  notes       String?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, incomeDate(sort: Desc)])
+  @@map("incomes")
+}

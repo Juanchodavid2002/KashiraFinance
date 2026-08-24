@@ -1,0 +1,77 @@
+<section class="page-narrow">
+  <a routerLink="/incomes" class="back">← Volver a ingresos</a>
+
+  <h1>{{ isEdit() ? 'Editar ingreso' : 'Nuevo ingreso' }}</h1>
+
+  @if (loadingIncome()) {
+    <p class="hint">Cargando ingreso...</p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="income-form">
+    @if (formError()) {
+      <p class="form-error">{{ formError() }}</p>
+    }
+
+    <div class="field">
+      <label for="description">Descripción</label>
+      <input
+        id="description"
+        type="text"
+        formControlName="description"
+        placeholder="Ej. Salario, venta, bono..."
+      />
+      @if (invalid('description')) {
+        <span class="field-error">Máximo 200 caracteres.</span>
+      }
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="amount">Monto *</label>
+        <input
+          id="amount"
+          type="number"
+          step="0.01"
+          min="0.01"
+          formControlName="amount"
+          placeholder="0"
+        />
+        @if (invalid('amount')) {
+          <span class="field-error">Ingresa un monto mayor a 0.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="date">Fecha</label>
+        <input id="date" type="date" formControlName="incomeDate" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="source">Fuente</label>
+      <input
+        id="source"
+        type="text"
+        formControlName="source"
+        placeholder="Ej. Empresa, freelance (opcional)"
+      />
+      @if (invalid('source')) {
+        <span class="field-error">Máximo 100 caracteres.</span>
+      }
+    </div>
+
+    <div class="field">
+      <label for="notes">Notas</label>
+      <textarea
+        id="notes"
+        rows="3"
+        formControlName="notes"
+        placeholder="Detalles adicionales (opcional)"
+      ></textarea>
+    </div>
+
+    <button type="submit" class="btn-primary" [disabled]="saving()">
+      {{ saving() ? 'Guardando...' : isEdit() ? 'Guardar cambios' : 'Registrar ingreso' }}
+    </button>
+  </form>
+</section>

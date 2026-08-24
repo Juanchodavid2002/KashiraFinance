@@ -1,0 +1,114 @@
+<section class="page">
+  <header class="page-header">
+    <h1>Ingresos</h1>
+    <a routerLink="/incomes/new" class="btn-primary btn-link">+ Nuevo ingreso</a>
+  </header>
+
+  <form [formGroup]="filters" (ngSubmit)="applyFilters()" class="filters">
+    <div class="field grow">
+      <label for="source">Fuente</label>
+      <input
+        id="source"
+        type="text"
+        formControlName="source"
+        placeholder="Ej. Empresa, freelance..."
+      />
+    </div>
+
+    <div class="field">
+      <label for="from">Desde</label>
+      <input id="from" type="date" formControlName="from" />
+    </div>
+
+    <div class="field">
+      <label for="to">Hasta</label>
+      <input id="to" type="date" formControlName="to" />
+    </div>
+
+    <button type="submit" class="btn-primary" [disabled]="loading()">
+      Filtrar
+    </button>
+    <button type="button" class="btn-secondary" (click)="clearFilters()">
+      Limpiar
+    </button>
+  </form>
+
+  @if (listError()) {
+    <p class="form-error">{{ listError() }}</p>
+  }
+
+  @if (meta(); as meta) {
+    <p class="totals">
+      {{ meta.total }} ingreso(s) · Total filtrado:
+      <strong class="positive">{{ totalFormatted() }}</strong>
+    </p>
+  }
+
+  @if (loading()) {
+    <p class="hint">Cargando ingresos...</p>
+  } @else if (incomes().length === 0) {
+    <div class="empty">
+      <p>No hay ingresos que coincidan con los filtros.</p>
+      <a routerLink="/incomes/new">Registra tu primer ingreso</a>
+    </div>
+  } @else {
+    <ul class="income-items">
+      @for (income of incomes(); track income.id) {
+        <li class="income-item">
+          <span class="badge">+</span>
+
+          <div class="info">
+            <span class="description">
+              {{ income.description ?? '(sin descripción)' }}
+            </span>
+            @if (income.source) {
+              <span class="sub">{{ income.source }}</span>
+            }
+          </div>
+
+          <time class="date">{{ formatDate(income.incomeDate) }}</time>
+
+          <span class="amount positive">{{ formatAmount(income.amount) }}</span>
+
+          <div class="actions">
+            <a
+              [routerLink]="['/incomes', income.id, 'edit']"
+              class="icon-btn"
+              aria-label="Editar"
+            >
+              Editar
+            </a>
+            <button
+              type="button"
+              class="icon-btn danger"
+              (click)="deleteIncome(income)"
+              [disabled]="deletingId() === income.id"
+            >
+              {{ deletingId() === income.id ? '...' : 'Eliminar' }}
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+
+    @if (totalPages() > 1) {
+      <nav class="pagination">
+        <button
+          type="button"
+          (click)="goToPage(page() - 1)"
+          [disabled]="page() <= 1"
+        >
+          ← Anterior
+        </button>
+        <span>Página {{ page() }} de {{ totalPages() }}</span>
+        <button
+          type="button"
+          (click)="goToPage(page() + 1)"
+          [disabled]="page() >= totalPages()"
+        >
+          Siguiente →
+        </button>
+      </nav>
+    }
+  }
+</section>

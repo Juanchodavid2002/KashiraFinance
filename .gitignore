@@ -1,0 +1,40 @@
+# Dependencias
+node_modules/
+
+# Compilados
+dist/
+coverage/
+*.tsbuildinfo
+
+# Variables de entorno (NUNCA subir secretos)
+.env
+.env.*
+!.env.example
+
+# Angular
+.angular/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editores e IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Prisma
+prisma/*.db
+
+# Temporales
+tmp/
+temp/

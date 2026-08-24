@@ -1,0 +1,78 @@
+<section class="page-narrow">
+  <h1>Categorías</h1>
+
+  @if (listError()) {
+    <p class="form-error">{{ listError() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="hint">Cargando categorías...</p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="new-category">
+    <div class="field grow">
+      <label for="name">Nueva categoría</label>
+      <input
+        id="name"
+        type="text"
+        formControlName="name"
+        placeholder="Ej. Mascotas"
+      />
+      @if (invalidName()) {
+        <span class="field-error">
+          El nombre es obligatorio (2 a 60 caracteres).
+        </span>
+      }
+    </div>
+
+    <div class="field color-field">
+      <label for="color">Color</label>
+      <input id="color" type="color" formControlName="color" />
+    </div>
+
+    <button type="submit" class="btn-primary" [disabled]="creating()">
+      {{ creating() ? 'Creando...' : 'Crear' }}
+    </button>
+  </form>
+
+  @if (createError()) {
+    <p class="form-error">{{ createError() }}</p>
+  }
+
+  <h2>Mis categorías</h2>
+  @if (ownCategories().length === 0 && !loading()) {
+    <p class="hint">Aún no has creado categorías propias.</p>
+  }
+  <ul class="category-items">
+    @for (category of ownCategories(); track category.id) {
+      <li class="category-item">
+        <span
+          class="dot"
+          [style.background]="category.color ?? 'var(--color-muted)'"
+        ></span>
+        <span class="name">{{ category.name }}</span>
+        <button
+          type="button"
+          class="icon-btn danger"
+          (click)="remove(category)"
+          [disabled]="deletingId() === category.id"
+        >
+          {{ deletingId() === category.id ? '...' : 'Eliminar' }}
+        </button>
+      </li>
+    }
+  </ul>
+
+  <h2>Predeterminadas</h2>
+  <ul class="category-items readonly">
+    @for (category of defaultCategories(); track category.id) {
+      <li class="category-item">
+        <span
+          class="dot"
+          [style.background]="category.color ?? 'var(--color-muted)'"
+        ></span>
+        <span class="name">{{ category.name }}</span>
+      </li>
+    }
+  </ul>
+</section>

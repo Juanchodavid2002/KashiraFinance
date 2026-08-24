@@ -1,0 +1,175 @@
+<div class="dashboard">
+  <header class="page-header">
+    <div>
+      <h1>Resumen</h1>
+      <p class="period-label">{{ periodLabel() }}</p>
+    </div>
+    <div class="period-nav">
+      <button
+        type="button"
+        class="nav-btn"
+        (click)="goToPreviousMonth()"
+        aria-label="Mes anterior"
+      >
+        ‹
+      </button>
+      <button
+        type="button"
+        class="nav-btn nav-btn--wide"
+        (click)="backToCurrentMonth()"
+        [disabled]="isCurrentPeriod()"
+      >
+        Hoy
+      </button>
+      <button
+        type="button"
+        class="nav-btn"
+        (click)="goToNextMonth()"
+        [disabled]="isCurrentPeriod()"
+        aria-label="Mes siguiente"
+      >
+        ›
+      </button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p class="status">Cargando resumen…</p>
+  } @else if (error()) {
+    <p class="form-error">
+      No se pudo cargar el resumen. Intenta de nuevo.
+    </p>
+    <button type="button" class="btn-primary retry-btn" (click)="retry()">
+      Reintentar
+    </button>
+  } @else if (data(); as d) {
+    @if (authService.currentUser(); as user) {
+      <p class="greeting">Hola, {{ user.name }}</p>
+    }
+
+    <section class="summary-cards">
+      <article class="card card--income">
+        <span class="card-label">Ingresos</span>
+        <span class="card-value">{{ formatAmount(d.totalIncome) }}</span>
+      </article>
+
+      <article class="card card--expense">
+        <span class="card-label">Gastos</span>
+        <span class="card-value">{{ formatAmount(d.totalExpense) }}</span>
+        @if (variation(); as v) {
+          <span [class]="'variation variation--' + v.direction">
+            {{ v.direction === 'up' ? '▲' : v.direction === 'down' ? '▼' : '■' }}
+            {{ v.text }}
+          </span>
+        }
+      </article>
+
+      <article class="card" [class.card--negative]="availableNegative()">
+        <span class="card-label">Disponible</span>
+        <span class="card-value">{{ formatAmount(d.available) }}</span>
+      </article>
+
+      <article class="card">
+        <span class="card-label">Gastos del mes</span>
+        <span class="card-value">{{ d.expenseCount }}</span>
+      </article>
+    </section>
+
+    <div class="panels">
+      <article class="panel panel--donut">
+        <h2>Gastos por categoría</h2>
+        @if (d.expensesByCategory.length > 0) {
+          <div class="donut-layout">
+            <div class="chart-box chart-box--donut">
+              <app-chart-canvas [config]="donutConfig()" />
+            </div>
+            <ul class="category-list">
+              @for (
+                slice of d.expensesByCategory;
+                track trackByCategoryId($index, slice)
+              ) {
+                <li class="category-item">
+                  <span
+                    class="dot"
+                    [style.background]="
+                      slice.categoryColor ?? '#9ca3af'
+                    "
+                  ></span>
+                  <span class="category-name">{{
+                    slice.categoryName
+                  }}</span>
+                  <span class="category-amount">{{
+                    formatAmount(slice.total)
+                  }}</span>
+                  <span class="category-percentage"
+                    >{{ slice.percentage }}%</span
+                  >
+                </li>
+              }
+            </ul>
+          </div>
+        } @else {
+          <p class="empty-note">
+            Sin gastos registrados en {{ periodLabel() }}.
+          </p>
+        }
+      </article>
+
+      <article class="panel panel--evolution">
+        <h2>Evolución últimos 6 meses</h2>
+        <div class="chart-box chart-box--bars">
+          <app-chart-canvas [config]="evolutionConfig()" />
+        </div>
+      </article>
+
+      <article class="panel panel--recent">
+        <div class="panel-header">
+          <h2>Gastos recientes</h2>
+          <a routerLink="/expenses" class="see-all">Ver todos</a>
+        </div>
+        @if (d.recentExpenses.length > 0) {
+          <ul class="recent-list">
+            @for (
+              expense of d.recentExpenses;
+              track trackByExpenseId($index, expense)
+            ) {
+              <li class="recent-item">
+                <span
+                  class="dot"
+                  [style.background]="expense.category.color ?? '#9ca3af'"
+                ></span>
+                <div class="recent-info">
+                  <span class="recent-description">
+                    {{
+                      expense.description ?? '(Sin descripción)'
+                    }}
+                  </span>
+                  <span class="recent-meta">
+                    {{ expense.category.name }} ·
+                    {{ formatDate(expense.expenseDate) }} ·
+                    {{ paymentMethodLabels[expense.paymentMethod] }}
+                  </span>
+                </div>
+                <span class="recent-amount">{{
+                  formatAmount(expense.amount)
+                }}</span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="empty-note">
+            Aún no registras gastos. Empieza con tu primer movimiento.
+          </p>
+          <div class="empty-actions">
+            <a routerLink="/expenses/nuevo" class="btn-primary empty-btn"
+              >Registrar gasto</a
+            >
+            <a routerLink="/incomes/new" class="btn-primary empty-btn"
+               >Registrar ingreso</a
+            >
+          </div>
+        }
+      </article>
+    </div>
+  }
+</div>
