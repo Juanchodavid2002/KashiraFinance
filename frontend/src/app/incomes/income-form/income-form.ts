@@ -93,7 +93,7 @@ export class IncomeForm implements OnInit {
         : this.incomeService.create(payload);
 
     request.pipe(finalize(() => this.saving.set(false))).subscribe({
-      next: () => void this.router.navigate(['/incomes']),
+      next: () => void this.router.navigate(['/app/incomes']),
       error: () =>
         this.formError.set(
           'No se pudo guardar el ingreso. Revisa los datos e intenta de nuevo.',

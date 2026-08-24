@@ -101,8 +101,20 @@ export class DashboardService {
           category: { select: { id: true, name: true, color: true } },
         },
       }),
-      this.sumByMonth('"incomeDate"', 'incomes', userId, evolutionStart, rangeEnd),
-      this.sumByMonth('"expenseDate"', 'expenses', userId, evolutionStart, rangeEnd),
+      this.sumByMonth(
+        '"incomeDate"',
+        'incomes',
+        userId,
+        evolutionStart,
+        rangeEnd,
+      ),
+      this.sumByMonth(
+        '"expenseDate"',
+        'expenses',
+        userId,
+        evolutionStart,
+        rangeEnd,
+      ),
       this.prisma.expense.aggregate({
         where: {
           userId,
@@ -171,13 +183,13 @@ export class DashboardService {
       where: { id: { in: grouped.map((row) => row.categoryId) } },
       select: { id: true, name: true, color: true },
     });
-    const categoryById = new Map(categories.map((category) => [category.id, category]));
+    const categoryById = new Map(
+      categories.map((category) => [category.id, category]),
+    );
 
     const total = grouped.reduce(
       (acc, row) =>
-        categoryById.has(row.categoryId)
-          ? acc.plus(row._sum.amount ?? 0)
-          : acc,
+        categoryById.has(row.categoryId) ? acc.plus(row._sum.amount ?? 0) : acc,
       new Prisma.Decimal(0),
     );
 

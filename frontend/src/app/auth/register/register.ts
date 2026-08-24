@@ -45,7 +45,7 @@ export class Register {
 
     this.authService.register({ name, email, password }).subscribe({
       next: () => {
-        void this.router.navigate(['/dashboard']);
+        void this.router.navigate(['/app/dashboard']);
       },
       error: (error: { status: number }) => {
         this.errorMessage.set(

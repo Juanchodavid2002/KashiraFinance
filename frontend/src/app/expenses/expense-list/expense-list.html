@@ -1,7 +1,7 @@
 <section class="page">
   <header class="page-header">
     <h1>Gastos</h1>
-    <a routerLink="/expenses/nuevo" class="btn-primary btn-link">+ Nuevo gasto</a>
+    <a routerLink="/app/expenses/nuevo" class="btn-primary btn-link">+ Nuevo gasto</a>
   </header>
 
   <form [formGroup]="filters" (ngSubmit)="applyFilters()" class="filters">
@@ -69,7 +69,7 @@
   } @else if (expenses().length === 0) {
     <div class="empty">
       <p>No hay gastos que coincidan con los filtros.</p>
-      <a routerLink="/expenses/nuevo">Registra tu primer gasto</a>
+      <a routerLink="/app/expenses/nuevo">Registra tu primer gasto</a>
     </div>
   } @else {
     <ul class="expense-items">
@@ -96,7 +96,7 @@
 
           <div class="actions">
             <a
-              [routerLink]="['/expenses', expense.id, 'editar']"
+              [routerLink]="['/app/expenses', expense.id, 'editar']"
               class="icon-btn"
               aria-label="Editar"
             >

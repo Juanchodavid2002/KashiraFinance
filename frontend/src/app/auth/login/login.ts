@@ -21,6 +21,11 @@ export class Login {
 
   readonly submitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly showPassword = signal(false);
+
+  togglePassword(): void {
+    this.showPassword.update((visible) => !visible);
+  }
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -38,7 +43,7 @@ export class Login {
 
     this.authService.login(this.form.getRawValue()).subscribe({
       next: () => {
-        void this.router.navigate(['/dashboard']);
+        void this.router.navigate(['/app/dashboard']);
       },
       error: (error: { status: number }) => {
         this.errorMessage.set(

@@ -125,7 +125,7 @@
       <article class="panel panel--recent">
         <div class="panel-header">
           <h2>Gastos recientes</h2>
-          <a routerLink="/expenses" class="see-all">Ver todos</a>
+          <a routerLink="/app/expenses" class="see-all">Ver todos</a>
         </div>
         @if (d.recentExpenses.length > 0) {
           <ul class="recent-list">
@@ -161,10 +161,10 @@
             Aún no registras gastos. Empieza con tu primer movimiento.
           </p>
           <div class="empty-actions">
-            <a routerLink="/expenses/nuevo" class="btn-primary empty-btn"
+            <a routerLink="/app/expenses/nuevo" class="btn-primary empty-btn"
               >Registrar gasto</a
             >
-            <a routerLink="/incomes/new" class="btn-primary empty-btn"
+            <a routerLink="/app/incomes/new" class="btn-primary empty-btn"
                >Registrar ingreso</a
             >
           </div>

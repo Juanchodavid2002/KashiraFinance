@@ -116,7 +116,7 @@ export class ExpenseForm implements OnInit {
         : this.expenseService.create(payload);
 
     request.pipe(finalize(() => this.saving.set(false))).subscribe({
-      next: () => void this.router.navigate(['/expenses']),
+      next: () => void this.router.navigate(['/app/expenses']),
       error: () =>
         this.formError.set(
           'No se pudo guardar el gasto. Revisa los datos e intenta de nuevo.',
