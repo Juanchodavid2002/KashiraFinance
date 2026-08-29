@@ -80,11 +80,6 @@
   <!-- ═══════════ Panel derecho: formulario ═══════════ -->
   <main class="form-panel">
     <div class="form-wrap">
-      <nav class="tabs">
-        <span class="tab active" aria-current="page">Iniciar sesi&oacute;n</span>
-        <a class="tab" routerLink="/register">Crear cuenta</a>
-      </nav>
-
       <section class="form-card">
         <header class="form-head">
           <h2>Bienvenido de nuevo &#128075;</h2>
@@ -199,6 +194,10 @@
               &iquest;Olvidaste tu contrase&ntilde;a?
             </a>
           </div>
+
+          <p class="form-footer">
+            &iquest;No tienes cuenta? <a routerLink="/register">Reg&iacute;strate aqu&iacute;</a>
+          </p>
 
           <button type="submit" class="btn-primary" [class.loading]="submitting()" [disabled]="submitting()">
             <span class="spinner"></span>

@@ -693,6 +693,7 @@
 .form-footer {
   text-align: center;
   margin-top: 22px;
+  margin-bottom: 16px;
   font-size: 13.5px;
   color: var(--muted);
 }

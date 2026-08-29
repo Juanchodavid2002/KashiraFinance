@@ -1,12 +1,30 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import {
+  AbstractControl,
   FormBuilder,
   ReactiveFormsModule,
+  ValidationErrors,
   Validators,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 import { AuthService } from '../../core/services/auth.service';
+
+type MatchState = 'hidden' | 'match' | 'no-match';
+
+interface StrengthLabel {
+  text: string;
+  cls: string;
+}
+
+const STRENGTH_LABELS: Record<number, StrengthLabel> = {
+  0: { text: '', cls: '' },
+  1: { text: 'Muy débil', cls: 'weak' },
+  2: { text: 'Débil', cls: 'medium' },
+  3: { text: 'Buena', cls: 'good' },
+  4: { text: 'Muy segura', cls: 'strong' },
+};
 
 @Component({
   selector: 'app-register',
@@ -21,6 +39,16 @@ export class Register {
 
   readonly submitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly showPassword = signal(false);
+  readonly showConfirm = signal(false);
+
+  togglePassword(): void {
+    this.showPassword.update((visible) => !visible);
+  }
+
+  toggleConfirm(): void {
+    this.showConfirm.update((visible) => !visible);
+  }
 
   readonly form = this.fb.nonNullable.group(
     {
@@ -28,9 +56,59 @@ export class Register {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]],
+      terms: [false, [Validators.requiredTrue]],
     },
     { validators: (group) => this.passwordsMatch(group) },
   );
+
+  private readonly passwordValue = toSignal(
+    this.form.controls.password.valueChanges,
+    { initialValue: '' },
+  );
+
+  private readonly confirmValue = toSignal(
+    this.form.controls.confirmPassword.valueChanges,
+    { initialValue: '' },
+  );
+
+  readonly strength = computed(() => {
+    const password = this.passwordValue();
+
+    if (!password) {
+      return 0;
+    }
+
+    let score = 0;
+
+    if (password.length >= 8) {
+      score++;
+    }
+    if (/[A-Z]/.test(password)) {
+      score++;
+    }
+    if (/[0-9]/.test(password)) {
+      score++;
+    }
+    if (/[^A-Za-z0-9]/.test(password)) {
+      score++;
+    }
+
+    return score;
+  });
+
+  readonly matchState = computed<MatchState>(() => {
+    const confirm = this.confirmValue();
+
+    if (!confirm) {
+      return 'hidden';
+    }
+
+    return confirm === this.passwordValue() ? 'match' : 'no-match';
+  });
+
+  strengthLabel(): StrengthLabel {
+    return STRENGTH_LABELS[this.strength()];
+  }
 
   onSubmit(): void {
     if (this.form.invalid || this.submitting()) {
@@ -58,10 +136,11 @@ export class Register {
     });
   }
 
-  private passwordsMatch(group: {
-    value: { password: string; confirmPassword: string };
-  }): object | null {
-    const { password, confirmPassword } = group.value;
-    return password === confirmPassword ? null : { passwordsMismatch: true };
+  private passwordsMatch(group: AbstractControl): ValidationErrors | null {
+    const password = group.get('password')?.value;
+    const confirmPassword = group.get('confirmPassword')?.value;
+    return password && confirmPassword && password !== confirmPassword
+      ? { passwordsMismatch: true }
+      : null;
   }
 }

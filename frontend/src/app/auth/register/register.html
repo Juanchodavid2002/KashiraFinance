@@ -1,80 +1,431 @@
-<div class="auth-page">
-  <main class="auth-card">
-    <h1 class="auth-title">Crear cuenta</h1>
-    <p class="auth-subtitle">Empieza a controlar tus finanzas hoy</p>
+<div class="page">
 
-    @if (errorMessage(); as message) {
-      <p class="form-error" role="alert">{{ message }}</p>
-    }
+  <!-- ============ Panel izquierdo: marca ============ -->
+  <aside class="brand-panel">
+    <div class="blob bp-blob-1"></div>
+    <div class="blob bp-blob-2"></div>
+    <div class="blob bp-blob-3"></div>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-      <div class="field">
-        <label for="name">Nombre</label>
-        <input
-          id="name"
-          type="text"
-          formControlName="name"
-          autocomplete="name"
-          placeholder="Tu nombre"
-        />
-        @if (form.controls.name.touched && form.controls.name.invalid) {
-          <span class="field-error">Mínimo 2 caracteres</span>
-        }
+    <div class="brand-top">
+      <a routerLink="/" class="brand">
+        <span class="brand-mark">K</span>
+        KashiraFinance
+      </a>
+      <a routerLink="/" class="back-link">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12" />
+          <polyline points="12 19 5 12 12 5" />
+        </svg>
+        Inicio
+      </a>
+    </div>
+
+    <div class="brand-content">
+      <div class="brand-badge">
+        <span class="pulse"></span>
+        &Uacute;nete a miles de usuarios
       </div>
 
-      <div class="field">
-        <label for="email">Correo electrónico</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          autocomplete="email"
-          placeholder="tucorreo@ejemplo.com"
-        />
-        @if (form.controls.email.touched && form.controls.email.invalid) {
-          <span class="field-error">Ingresa un correo válido</span>
-        }
+      <h1>Empieza tu camino hacia la <span class="accent">libertad financiera</span>.</h1>
+      <p>Crea tu cuenta en menos de un minuto y descubre una forma m&aacute;s clara de entender tu dinero.</p>
+
+      <!-- Features -->
+      <div class="features">
+        <div class="feature">
+          <div class="ic">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 11l3 3L22 4" />
+              <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+            </svg>
+          </div>
+          <div class="text">
+            <h4>Registro r&aacute;pido y seguro</h4>
+            <p>Solo necesitas unos segundos para comenzar.</p>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="ic">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23" />
+              <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+            </svg>
+          </div>
+          <div class="text">
+            <h4>100% gratis para empezar</h4>
+            <p>Sin costos ocultos, sin compromisos.</p>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="ic">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </div>
+          <div class="text">
+            <h4>Tu informaci&oacute;n protegida</h4>
+            <p>Cifrado de extremo a extremo en todo momento.</p>
+          </div>
+        </div>
       </div>
 
-      <div class="field">
-        <label for="password">Contraseña</label>
-        <input
-          id="password"
-          type="password"
-          formControlName="password"
-          autocomplete="new-password"
-          placeholder="Mínimo 8 caracteres"
-        />
-        @if (form.controls.password.touched && form.controls.password.invalid) {
-          <span class="field-error">Mínimo 8 caracteres</span>
+      <!-- Vista previa flotante -->
+      <div class="floating-preview">
+        <div class="float-card">
+          <div class="float-card-head">
+            <div class="left">
+              <div class="float-avatar">A</div>
+              <div>
+                <h5>Mi panel</h5>
+                <span>Agosto 2026</span>
+              </div>
+            </div>
+            <span class="status">En l&iacute;nea</span>
+          </div>
+          <div class="float-balance">
+            <div class="lbl">Balance disponible</div>
+            <div class="val">$1.650.000</div>
+            <span class="delta">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"
+                stroke-linecap="round">
+                <polyline points="18 15 12 9 6 15" />
+              </svg>
+              +8.2% este mes
+            </span>
+          </div>
+          <div class="float-mini">
+            <div class="float-mini-item">
+              <div class="lbl">Ingresos</div>
+              <div class="val">$4.500.000</div>
+            </div>
+            <div class="float-mini-item savings">
+              <div class="lbl">Ahorro</div>
+              <div class="val">$1.650.000</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="deco-chip deco-1">
+          <span class="ic">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+              stroke-linecap="round">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+            </svg>
+          </span>
+          +12.4% ahorro
+        </div>
+        <div class="deco-chip deco-2">
+          <span class="ic">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+              stroke-linecap="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </span>
+          100% seguro
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ Panel derecho: formulario ============ -->
+  <main class="form-panel">
+    <div class="form-wrap">
+
+      <!-- Tarjeta del formulario -->
+      <div class="form-card">
+        <div class="form-head">
+          <h2>Crea tu cuenta &#10024;</h2>
+          <p>&iquest;Ya tienes cuenta? <a routerLink="/login">Inicia sesi&oacute;n</a></p>
+        </div>
+
+        @if (errorMessage(); as msg) {
+        <p class="api-error" role="alert">{{ msg }}</p>
         }
+
+        <!-- Botones sociales -->
+        <div class="social-row">
+          <button class="social-btn" type="button" disabled title="Pr&oacute;ximamente">
+            <svg width="16" height="16" viewBox="0 0 24 24">
+              <path fill="#4285F4"
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="#34A853"
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05"
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+              <path fill="#EA4335"
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+            </svg>
+            Google
+          </button>
+          <button class="social-btn" type="button" disabled title="Pr&oacute;ximamente">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+            </svg>
+            Apple
+          </button>
+        </div>
+
+        <div class="divider">o reg&iacute;strate con tu correo</div>
+
+        <!-- Formulario -->
+        <form class="register-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+          <!-- Nombre -->
+          <div class="field" [class.error]="form.controls.name.invalid && form.controls.name.touched">
+            <label for="name">Nombre completo</label>
+            <div class="input-wrap">
+              <svg class="ic-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <input type="text" id="name" formControlName="name" placeholder="Juan P&eacute;rez"
+                autocomplete="name" />
+            </div>
+            @if (form.controls.name.invalid && form.controls.name.touched) {
+            @if (form.controls.name.hasError('required')) {
+            <span class="field-error show">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                stroke-linecap="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              Ingresa tu nombre
+            </span>
+            } @else {
+            <span class="field-error show">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                stroke-linecap="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              El nombre debe tener al menos 2 caracteres
+            </span>
+            }
+            }
+          </div>
+
+          <!-- Correo -->
+          <div class="field" [class.error]="form.controls.email.invalid && form.controls.email.touched">
+            <label for="email">Correo electr&oacute;nico</label>
+            <div class="input-wrap">
+              <svg class="ic-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
+              <input type="email" id="email" formControlName="email" placeholder="tu&#64;correo.com"
+                autocomplete="email" />
+            </div>
+            @if (form.controls.email.invalid && form.controls.email.touched) {
+            @if (form.controls.email.hasError('required')) {
+            <span class="field-error show">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                stroke-linecap="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              Ingresa tu correo
+            </span>
+            } @else {
+            <span class="field-error show">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                stroke-linecap="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              Ingresa un correo v&aacute;lido
+            </span>
+            }
+            }
+          </div>
+
+          <!-- Contraseña -->
+          <div class="field" [class.error]="form.controls.password.invalid && form.controls.password.touched">
+            <label for="password">Contrase&ntilde;a</label>
+            <div class="input-wrap has-toggle">
+              <svg class="ic-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0110 0v4" />
+              </svg>
+              <input [type]="showPassword() ? 'text' : 'password'" id="password" formControlName="password"
+                placeholder="M&iacute;nimo 8 caracteres" autocomplete="new-password" />
+              <button type="button" class="ic-right" (click)="togglePassword()" [attr.aria-label]="
+                  showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                ">
+                @if (showPassword()) {
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+                } @else {
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                }
+              </button>
+            </div>
+            <div class="strength-bar" [attr.data-strength]="strength()" aria-hidden="true">
+              <div class="seg"></div>
+              <div class="seg"></div>
+              <div class="seg"></div>
+              <div class="seg"></div>
+            </div>
+            <span class="strength-text {{ strengthLabel().cls }}">{{ strengthLabel().text }}</span>
+            @if (form.controls.password.invalid && form.controls.password.touched) {
+            @if (form.controls.password.hasError('required')) {
+            <span class="field-error show">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                stroke-linecap="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              La contrase&ntilde;a es obligatoria
+            </span>
+            } @else {
+            <span class="field-error show">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                stroke-linecap="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              La contrase&ntilde;a debe tener al menos 8 caracteres
+            </span>
+            }
+            }
+          </div>
+
+          <!-- Confirmar contraseña -->
+          <div class="field" [class.error]="
+              (form.controls.confirmPassword.invalid && form.controls.confirmPassword.touched) ||
+              (form.hasError('passwordsMismatch') && form.controls.confirmPassword.touched)
+            ">
+            <label for="confirm">Confirmar contrase&ntilde;a</label>
+            <div class="input-wrap has-toggle">
+              <svg class="ic-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4" />
+                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+              </svg>
+              <input [type]="showConfirm() ? 'text' : 'password'" id="confirm" formControlName="confirmPassword"
+                placeholder="Repite tu contrase&ntilde;a" autocomplete="new-password" />
+              <button type="button" class="ic-right" (click)="toggleConfirm()" [attr.aria-label]="
+                  showConfirm() ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                ">
+                @if (showConfirm()) {
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+                } @else {
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                }
+              </button>
+            </div>
+            @if (matchState() !== 'hidden') {
+            <span class="match-indicator show" [class.match]="matchState() === 'match'"
+              [class.no-match]="matchState() === 'no-match'">
+              @if (matchState() === 'match') {
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Las contrase&ntilde;as coinciden
+              } @else {
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+              Las contrase&ntilde;as no coinciden
+              }
+            </span>
+            }
+            @if (
+            form.controls.confirmPassword.invalid && form.controls.confirmPassword.touched
+            ) {
+            <span class="field-error show">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                stroke-linecap="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              Confirma tu contrase&ntilde;a
+            </span>
+            }
+          </div>
+
+          <!-- Términos -->
+          <div class="field terms-field" [class.error]="form.controls.terms.invalid && form.controls.terms.touched">
+            <label class="checkbox terms-row">
+              <input type="checkbox" formControlName="terms" />
+              <span class="box">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
+              <span>Acepto los <a href="#">T&eacute;rminos y condiciones</a> y la <a href="#">Pol&iacute;tica de
+                  privacidad</a></span>
+            </label>
+            @if (form.controls.terms.invalid && form.controls.terms.touched) {
+            <span class="field-error show">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                stroke-linecap="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              Debes aceptar los t&eacute;rminos para continuar
+            </span>
+            }
+          </div>
+
+          <p class="form-footer">
+            &iquest;Ya tienes cuenta? <a routerLink="/login">Inicia sesi&oacute;n aqu&iacute;</a>
+          </p>
+
+          <button type="submit" class="btn-primary" [class.loading]="submitting()" [disabled]="submitting()">
+            <span>Crear mi cuenta</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+            <span class="spinner"></span>
+          </button>
+        </form>
       </div>
 
-      <div class="field">
-        <label for="confirmPassword">Confirmar contraseña</label>
-        <input
-          id="confirmPassword"
-          type="password"
-          formControlName="confirmPassword"
-          autocomplete="new-password"
-          placeholder="Repite la contraseña"
-        />
-        @if (
-          form.hasError('passwordsMismatch') &&
-          form.controls.confirmPassword.touched
-        ) {
-          <span class="field-error">Las contraseñas no coinciden</span>
-        }
+      <div class="security-note">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+        Conexi&oacute;n segura &middot; Cifrado de extremo a extremo
       </div>
 
-      <button type="submit" class="btn-primary" [disabled]="submitting()">
-        {{ submitting() ? 'Creando cuenta…' : 'Crear cuenta' }}
-      </button>
-    </form>
-
-    <p class="auth-switch">
-      ¿Ya tienes cuenta?
-      <a routerLink="/login">Inicia sesión</a>
-    </p>
+    </div>
   </main>
+
 </div>
