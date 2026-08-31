@@ -27,6 +27,7 @@ model User {
   incomes             Income[]
   categories          Category[]
   passwordResetCodes  PasswordResetCode[]
+  hiddenCategories    UserHiddenCategory[]
 
   @@map("users")
 }
@@ -54,11 +55,24 @@ model Category {
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   expenses  Expense[]
+  hiddenBy  UserHiddenCategory[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([userId, name])
   @@map("categories")
+}
+
+model UserHiddenCategory {
+  id         String   @id @default(uuid())
+  userId     String
+  categoryId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, categoryId])
+  @@map("user_hidden_categories")
 }
 
 model Expense {

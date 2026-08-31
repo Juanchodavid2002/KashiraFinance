@@ -62,11 +62,6 @@ h2 {
   box-shadow: var(--shadow-sm);
 }
 
-.category-items.readonly .category-item {
-  box-shadow: none;
-  border: 1px solid var(--color-border);
-}
-
 .dot {
   width: 12px;
   height: 12px;

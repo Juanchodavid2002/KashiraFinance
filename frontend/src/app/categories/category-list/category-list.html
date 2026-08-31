@@ -64,7 +64,7 @@
   </ul>
 
   <h2>Predeterminadas</h2>
-  <ul class="category-items readonly">
+  <ul class="category-items">
     @for (category of defaultCategories(); track category.id) {
       <li class="category-item">
         <span
@@ -72,6 +72,14 @@
           [style.background]="category.color ?? 'var(--color-muted)'"
         ></span>
         <span class="name">{{ category.name }}</span>
+        <button
+          type="button"
+          class="icon-btn danger"
+          (click)="remove(category)"
+          [disabled]="deletingId() === category.id"
+        >
+          {{ deletingId() === category.id ? '...' : 'Ocultar' }}
+        </button>
       </li>
     }
   </ul>

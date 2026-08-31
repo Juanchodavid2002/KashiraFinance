@@ -25,6 +25,16 @@ export interface RecentExpense {
   category: ExpenseCategoryRef;
 }
 
+export interface RecentActivity {
+  id: string;
+  type: 'income' | 'expense';
+  description: string | null;
+  amount: string;
+  date: string;
+  meta: string;
+  color: string | null;
+}
+
 export interface MonthlyEvolutionPoint {
   month: number;
   year: number;
@@ -45,6 +55,7 @@ export interface DashboardSummary {
   expenseCount: number;
   expensesByCategory: ExpenseCategorySlice[];
   recentExpenses: RecentExpense[];
+  recentActivity: RecentActivity[];
   monthlyEvolution: MonthlyEvolutionPoint[];
   comparison: DashboardComparison;
 }

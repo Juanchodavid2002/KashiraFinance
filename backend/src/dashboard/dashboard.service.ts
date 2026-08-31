@@ -5,6 +5,7 @@ import { DashboardQueryDto } from './dto/dashboard-query.dto';
 
 const EVOLUTION_MONTHS = 6;
 const RECENT_EXPENSES_LIMIT = 5;
+const RECENT_ACTIVITY_LIMIT = 8;
 
 interface MonthAggregateRow {
   ym: string;
@@ -71,6 +72,7 @@ export class DashboardService {
       expenseCount,
       byCategory,
       recentExpenses,
+      recentIncomes,
       incomeByMonthRows,
       expenseByMonthRows,
       previousExpenseSum,
@@ -99,6 +101,18 @@ export class DashboardService {
           expenseDate: true,
           paymentMethod: true,
           category: { select: { id: true, name: true, color: true } },
+        },
+      }),
+      this.prisma.income.findMany({
+        where: { userId },
+        orderBy: [{ incomeDate: 'desc' }, { createdAt: 'desc' }],
+        take: RECENT_EXPENSES_LIMIT,
+        select: {
+          id: true,
+          description: true,
+          amount: true,
+          incomeDate: true,
+          source: true,
         },
       }),
       this.sumByMonth(
@@ -154,6 +168,10 @@ export class DashboardService {
         ...expense,
         amount: toAmount(expense.amount),
       })),
+      recentActivity: this.buildRecentActivity(
+        recentExpenses,
+        recentIncomes,
+      ),
       monthlyEvolution: this.buildEvolution(
         period.year,
         period.month,
@@ -260,5 +278,50 @@ export class DashboardService {
     }
 
     return points;
+  }
+
+  private buildRecentActivity(
+    expenses: {
+      id: string;
+      description: string | null;
+      amount: Prisma.Decimal;
+      expenseDate: Date;
+      paymentMethod: string;
+      category: { id: string; name: string; color: string | null };
+    }[],
+    incomes: {
+      id: string;
+      description: string | null;
+      amount: Prisma.Decimal;
+      incomeDate: Date;
+      source: string | null;
+    }[],
+  ) {
+    const expenseItems = expenses.map((expense) => ({
+      id: expense.id,
+      type: 'expense' as const,
+      description: expense.description,
+      amount: toAmount(expense.amount),
+      date: expense.expenseDate,
+      meta: expense.category.name,
+      color: expense.category.color ?? null,
+    }));
+
+    const incomeItems = incomes.map((income) => ({
+      id: income.id,
+      type: 'income' as const,
+      description: income.description,
+      amount: toAmount(income.amount),
+      date: income.incomeDate,
+      meta: income.source ?? 'Ingreso',
+      color: null,
+    }));
+
+    return [...expenseItems, ...incomeItems]
+      .sort(
+        (a, b) =>
+          new Date(b.date).getTime() - new Date(a.date).getTime(),
+      )
+      .slice(0, RECENT_ACTIVITY_LIMIT);
   }
 }

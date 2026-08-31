@@ -19,7 +19,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-chart-canvas',
   template: '<canvas #canvas></canvas>',
-  styles: ':host { display: block; position: relative; }',
+  styles: ':host { display: block; position: relative; height: 100%; width: 100%; }',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChartCanvas {

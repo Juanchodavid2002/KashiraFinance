@@ -1,25 +1,95 @@
-<div class="shell">
-  <header class="topbar">
-    <span class="brand">Kashira Finance</span>
+<div class="app">
+  <aside
+    class="sidebar"
+    [class.open]="sidebarOpen()"
+    aria-label="Menú principal"
+  >
+    <div class="sidebar-brand">
+      <div class="brand-logo">K</div>
+      <div class="brand-text">
+        <strong>Kashira</strong>
+        <span>Finance</span>
+      </div>
+    </div>
 
-    <nav class="nav">
-      <a routerLink="/app/dashboard" routerLinkActive="active">Dashboard</a>
-      <a routerLink="/app/expenses" routerLinkActive="active">Gastos</a>
-      <a routerLink="/app/incomes" routerLinkActive="active">Ingresos</a>
-      <a routerLink="/app/categorias" routerLinkActive="active">Categorías</a>
-    </nav>
+    <div class="sidebar-section">
+      <div class="sidebar-label">General</div>
+      <nav class="sidebar-nav">
+        <a
+          routerLink="/app/dashboard"
+          routerLinkActive="active"
+          class="nav-link"
+        >
+          <span class="icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+        <a
+          routerLink="/app/expenses"
+          routerLinkActive="active"
+          class="nav-link"
+        >
+          <span class="icon">💸</span>
+          <span>Gastos</span>
+        </a>
+        <a
+          routerLink="/app/incomes"
+          routerLinkActive="active"
+          class="nav-link"
+        >
+          <span class="icon">💰</span>
+          <span>Ingresos</span>
+        </a>
+        <a
+          routerLink="/app/categorias"
+          routerLinkActive="active"
+          class="nav-link"
+        >
+          <span class="icon">🏷️</span>
+          <span>Categorías</span>
+        </a>
+      </nav>
+    </div>
 
-    <div class="user-zone">
+    <div class="sidebar-footer">
       @if (currentUser(); as user) {
-        <span class="user-name">{{ user.name }}</span>
+        <div class="user-card">
+          <div class="user-avatar">{{ userInitials() }}</div>
+          <div class="user-meta">
+            <strong>{{ user.name }}</strong>
+            <span>{{ user.email }}</span>
+          </div>
+        </div>
       }
-      <button type="button" class="btn-logout" (click)="logout()">
-        Salir
+      <button type="button" class="logout-btn" (click)="logout()">
+        <span class="logout-icon">🚪</span>
+        <span>Cerrar sesión</span>
       </button>
     </div>
-  </header>
+  </aside>
 
-  <main class="content">
-    <router-outlet />
-  </main>
+  <div
+    class="sidebar-overlay"
+    [class.active]="sidebarOpen()"
+    (click)="closeSidebar()"
+  ></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button
+        type="button"
+        class="icon-btn mobile-menu-btn"
+        aria-label="Abrir menú"
+        (click)="openSidebar()"
+      >
+        ☰
+      </button>
+      <div class="page-title">
+        <h1>Kashira Finance</h1>
+      </div>
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </div>
 </div>

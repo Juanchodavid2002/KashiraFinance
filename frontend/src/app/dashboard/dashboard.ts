@@ -5,11 +5,7 @@ import { finalize } from 'rxjs';
 
 import { DashboardService } from '../core/services/dashboard.service';
 import { AuthService } from '../core/services/auth.service';
-import {
-  PAYMENT_METHOD_LABELS,
-  formatAmount,
-  formatDate,
-} from '../core/utils/format';
+import { formatAmount, formatDate } from '../core/utils/format';
 import type {
   DashboardPeriod,
   DashboardSummary,
@@ -47,14 +43,14 @@ const MONTH_SHORT_NAMES = [
 ];
 
 const FALLBACK_COLORS = [
-  '#2563eb',
-  '#16a34a',
-  '#f59e0b',
+  '#6366f1',
   '#8b5cf6',
+  '#10b981',
+  '#f59e0b',
   '#ec4899',
   '#14b8a6',
   '#ef4444',
-  '#6366f1',
+  '#3b82f6',
   '#84cc16',
   '#f97316',
 ];
@@ -62,6 +58,16 @@ const FALLBACK_COLORS = [
 interface VariationInfo {
   direction: 'up' | 'down' | 'flat';
   text: string;
+}
+
+interface HealthRow {
+  key: string;
+  label: string;
+  value: string;
+  percent: number;
+  fillClass: string;
+  color: string;
+  note: string;
 }
 
 @Component({
@@ -76,7 +82,6 @@ export class Dashboard implements OnInit {
 
   readonly formatAmount = formatAmount;
   readonly formatDate = formatDate;
-  readonly paymentMethodLabels = PAYMENT_METHOD_LABELS;
 
   readonly period = signal<DashboardPeriod>(this.currentPeriod());
   readonly data = signal<DashboardSummary | null>(null);
@@ -97,9 +102,71 @@ export class Dashboard implements OnInit {
     );
   });
 
+  readonly greeting = computed(() => {
+    const hour = new Date().getHours();
+
+    if (hour < 12) {
+      return 'Buenos días';
+    }
+
+    if (hour < 19) {
+      return 'Buenas tardes';
+    }
+
+    return 'Buenas noches';
+  });
+
+  readonly userName = computed(() => {
+    const name = this.authService.currentUser()?.name?.trim() ?? '';
+
+    if (!name) {
+      return '';
+    }
+
+    return ` ${name.split(/\s+/)[0]}`;
+  });
+
   readonly availableNegative = computed(
     () => Number(this.data()?.available ?? '0') < 0,
   );
+
+  readonly availablePercent = computed(() => {
+    const summary = this.data();
+
+    if (!summary) {
+      return 0;
+    }
+
+    const income = Number(summary.totalIncome);
+
+    if (income <= 0) {
+      return 0;
+    }
+
+    return Math.max(
+      0,
+      Math.min(100, ((Number(summary.available) / income) * 100)),
+    );
+  });
+
+  readonly expensePercent = computed(() => {
+    const summary = this.data();
+
+    if (!summary) {
+      return 0;
+    }
+
+    const income = Number(summary.totalIncome);
+
+    if (income <= 0) {
+      return 0;
+    }
+
+    return Math.max(
+      0,
+      Math.min(100, ((Number(summary.totalExpense) / income) * 100)),
+    );
+  });
 
   readonly variation = computed<VariationInfo | null>(() => {
     const value = this.data()?.comparison.variationPercentage;
@@ -139,19 +206,21 @@ export class Dashboard implements OnInit {
                 slice.categoryColor ??
                 FALLBACK_COLORS[index % FALLBACK_COLORS.length],
             ),
-            borderColor: '#ffffff',
-            borderWidth: 2,
-            hoverOffset: 6,
+            borderWidth: 0,
+            hoverOffset: 8,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '58%',
+        cutout: '72%',
         plugins: {
           legend: { display: false },
           tooltip: {
+            backgroundColor: '#0f172a',
+            padding: 10,
+            cornerRadius: 8,
             callbacks: {
               label: (context) =>
                 `${context.label}: ${formatAmount(String(context.parsed))}`,
@@ -162,15 +231,28 @@ export class Dashboard implements OnInit {
     };
   });
 
-  readonly evolutionConfig = computed<ChartConfiguration<'bar'> | null>(() => {
+  readonly evolutionConfig = computed<ChartConfiguration<'line'> | null>(() => {
     const points = this.data()?.monthlyEvolution ?? [];
 
     if (points.length === 0) {
       return null;
     }
 
+    const canvas = document.createElement('canvas');
+    canvas.width = 600;
+    canvas.height = 280;
+    const ctx = canvas.getContext('2d');
+
+    const incomeGradient = ctx?.createLinearGradient(0, 0, 0, 280);
+    incomeGradient?.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
+    incomeGradient?.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+    const expenseGradient = ctx?.createLinearGradient(0, 0, 0, 280);
+    expenseGradient?.addColorStop(0, 'rgba(239, 68, 68, 0.2)');
+    expenseGradient?.addColorStop(1, 'rgba(239, 68, 68, 0)');
+
     return {
-      type: 'bar',
+      type: 'line',
       data: {
         labels: points.map(
           (point) => `${MONTH_SHORT_NAMES[point.month - 1]} ${point.year}`,
@@ -179,39 +261,137 @@ export class Dashboard implements OnInit {
           {
             label: 'Ingresos',
             data: points.map((point) => Number(point.income)),
-            backgroundColor: '#16a34a',
-            borderRadius: 4,
+            borderColor: '#10b981',
+            backgroundColor: incomeGradient ?? 'rgba(16, 185, 129, 0.1)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 0,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#10b981',
+            pointHoverBorderColor: 'white',
+            pointHoverBorderWidth: 3,
           },
           {
             label: 'Gastos',
             data: points.map((point) => Number(point.expense)),
-            backgroundColor: '#dc2626',
-            borderRadius: 4,
+            borderColor: '#ef4444',
+            backgroundColor: expenseGradient ?? 'rgba(239, 68, 68, 0.1)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 0,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#ef4444',
+            pointHoverBorderColor: 'white',
+            pointHoverBorderWidth: 3,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        scales: {
-          x: { grid: { display: false } },
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: (value) => this.shortAmount(value as number),
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'top',
+            align: 'end',
+            labels: {
+              usePointStyle: true,
+              pointStyle: 'circle',
+              padding: 16,
+              boxWidth: 8,
+              boxHeight: 8,
+            },
+          },
+          tooltip: {
+            backgroundColor: '#0f172a',
+            padding: 12,
+            cornerRadius: 8,
+            callbacks: {
+              label: (context) =>
+                ` ${context.dataset.label}: ${formatAmount(String(context.parsed.y))}`,
             },
           },
         },
-        plugins: {
-          tooltip: {
-            callbacks: {
-              label: (context) =>
-                `${context.dataset.label}: ${formatAmount(String(context.parsed.y))}`,
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#94a3b8' },
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: '#f1f5f9', drawBorder: false },
+            ticks: {
+              color: '#94a3b8',
+              callback: (value) => this.shortAmount(value as number),
             },
           },
         },
       },
     };
+  });
+
+  readonly healthRows = computed<HealthRow[]>(() => {
+    const summary = this.data();
+
+    if (!summary) {
+      return [];
+    }
+
+    const income = Number(summary.totalIncome);
+    const expense = Number(summary.totalExpense);
+    const available = Number(summary.available);
+
+    let expensePercent = 0;
+    let availablePercent = 0;
+
+    if (income > 0) {
+      expensePercent = Math.max(
+        0,
+        Math.min(100, (expense / income) * 100),
+      );
+      availablePercent = Math.max(
+        0,
+        Math.min(100, (available / income) * 100),
+      );
+    }
+
+    return [
+      {
+        key: 'income',
+        label: 'Ingresos',
+        value: formatAmount(summary.totalIncome),
+        percent: income > 0 ? 100 : 0,
+        fillClass: 'income',
+        color: 'var(--color-success)',
+        note: income > 0 ? '100% — base de referencia' : 'Sin ingresos este mes',
+      },
+      {
+        key: 'expense',
+        label: 'Gastos',
+        value: formatAmount(summary.totalExpense),
+        percent: expensePercent,
+        fillClass: 'expense',
+        color: 'var(--color-danger)',
+        note:
+          income > 0
+            ? `${expensePercent.toFixed(1)}% de tus ingresos`
+            : 'Sin gastos este mes',
+      },
+      {
+        key: 'available',
+        label: 'Disponible',
+        value: formatAmount(summary.available),
+        percent: availablePercent,
+        fillClass: 'available',
+        color: 'var(--color-primary)',
+        note:
+          available >= 0 && availablePercent >= 70
+            ? `${availablePercent.toFixed(1)}% — excelente 💚`
+            : `${availablePercent.toFixed(1)}% de tus ingresos`,
+      },
+    ];
   });
 
   ngOnInit(): void {
@@ -245,8 +425,12 @@ export class Dashboard implements OnInit {
     return slice.categoryId;
   }
 
-  trackByExpenseId(_index: number, expense: { id: string }): string {
-    return expense.id;
+  trackByActivityId(_index: number, item: { id: string; type: string }): string {
+    return `${item.type}-${item.id}`;
+  }
+
+  trackByHealthKey(_index: number, row: HealthRow): string {
+    return row.key;
   }
 
   private loadSummary(): void {

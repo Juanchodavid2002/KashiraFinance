@@ -1,175 +1,313 @@
-<div class="dashboard">
-  <header class="page-header">
-    <div>
-      <h1>Resumen</h1>
-      <p class="period-label">{{ periodLabel() }}</p>
-    </div>
-    <div class="period-nav">
-      <button
-        type="button"
-        class="nav-btn"
-        (click)="goToPreviousMonth()"
-        aria-label="Mes anterior"
-      >
-        ‹
-      </button>
-      <button
-        type="button"
-        class="nav-btn nav-btn--wide"
-        (click)="backToCurrentMonth()"
-        [disabled]="isCurrentPeriod()"
-      >
-        Hoy
-      </button>
-      <button
-        type="button"
-        class="nav-btn"
-        (click)="goToNextMonth()"
-        [disabled]="isCurrentPeriod()"
-        aria-label="Mes siguiente"
-      >
-        ›
-      </button>
-    </div>
-  </header>
-
-  @if (loading()) {
+@if (loading()) {
+  <div class="status-container">
     <p class="status">Cargando resumen…</p>
-  } @else if (error()) {
-    <p class="form-error">
-      No se pudo cargar el resumen. Intenta de nuevo.
-    </p>
-    <button type="button" class="btn-primary retry-btn" (click)="retry()">
+  </div>
+} @else if (error()) {
+  <div class="empty-state">
+    <div class="empty-emoji">⚠️</div>
+    <div class="empty-title">No se pudo cargar el resumen</div>
+    <p class="empty-text">Intenta de nuevo en unos momentos.</p>
+    <button type="button" class="btn-primary" (click)="retry()">
       Reintentar
     </button>
-  } @else if (data(); as d) {
-    @if (authService.currentUser(); as user) {
-      <p class="greeting">Hola, {{ user.name }}</p>
-    }
+  </div>
+} @else if (data(); as d) {
+  <div class="dashboard">
+    <!-- Header -->
+    <div class="header-row">
+      <div class="greeting">
+        <h2>{{ greeting() }}{{ userName() }} 👋</h2>
+        <p>Aquí tienes el resumen de tus finanzas para este mes</p>
+      </div>
+      <div class="month-control">
+        <button
+          type="button"
+          class="month-btn"
+          aria-label="Mes anterior"
+          (click)="goToPreviousMonth()"
+        >
+          ‹
+        </button>
+        <div class="month-label">{{ periodLabel() }}</div>
+        <button
+          type="button"
+          class="month-btn"
+          aria-label="Mes siguiente"
+          (click)="goToNextMonth()"
+          [disabled]="isCurrentPeriod()"
+        >
+          ›
+        </button>
+        <button
+          type="button"
+          class="today-btn"
+          (click)="backToCurrentMonth()"
+          [disabled]="isCurrentPeriod()"
+        >
+          Hoy
+        </button>
+      </div>
+    </div>
 
-    <section class="summary-cards">
-      <article class="card card--income">
-        <span class="card-label">Ingresos</span>
-        <span class="card-value">{{ formatAmount(d.totalIncome) }}</span>
-      </article>
-
-      <article class="card card--expense">
-        <span class="card-label">Gastos</span>
-        <span class="card-value">{{ formatAmount(d.totalExpense) }}</span>
-        @if (variation(); as v) {
-          <span [class]="'variation variation--' + v.direction">
-            {{ v.direction === 'up' ? '▲' : v.direction === 'down' ? '▼' : '■' }}
-            {{ v.text }}
+    <!-- Summary -->
+    <div class="summary-grid">
+      <div class="stat-card primary">
+        <div class="stat-head">
+          <span class="stat-label">Disponible</span>
+          <div class="stat-icon available">💎</div>
+        </div>
+        <div class="stat-value">{{ formatAmount(d.available) }}</div>
+        <div class="stat-trend">
+          <span
+            class="trend-pill"
+            [class.down]="availableNegative()"
+            [class.up]="!availableNegative()"
+          >
+            {{ availableNegative() ? '▼' : '▲' }} {{ availablePercent().toFixed(1) }}%
           </span>
-        }
-      </article>
+          <span>de tus ingresos</span>
+        </div>
+      </div>
 
-      <article class="card" [class.card--negative]="availableNegative()">
-        <span class="card-label">Disponible</span>
-        <span class="card-value">{{ formatAmount(d.available) }}</span>
-      </article>
+      <div class="stat-card">
+        <div class="stat-head">
+          <span class="stat-label">Ingresos</span>
+          <div class="stat-icon income">↑</div>
+        </div>
+        <div class="stat-value">{{ formatAmount(d.totalIncome) }}</div>
+        <div class="stat-trend">
+          <span class="trend-pill up">Este mes</span>
+        </div>
+      </div>
 
-      <article class="card">
-        <span class="card-label">Gastos del mes</span>
-        <span class="card-value">{{ d.expenseCount }}</span>
-      </article>
-    </section>
+      <div class="stat-card">
+        <div class="stat-head">
+          <span class="stat-label">Gastos</span>
+          <div class="stat-icon expense">↓</div>
+        </div>
+        <div class="stat-value">{{ formatAmount(d.totalExpense) }}</div>
+        <div class="stat-trend">
+          @if (variation(); as v) {
+            <span class="trend-pill" [class]="v.direction">
+              {{ v.direction === 'up' ? '▲' : v.direction === 'down' ? '▼' : '■' }}
+              {{ v.text }}
+            </span>
+          } @else {
+            <span>Este mes</span>
+          }
+        </div>
+      </div>
 
-    <div class="panels">
-      <article class="panel panel--donut">
-        <h2>Gastos por categoría</h2>
-        @if (d.expensesByCategory.length > 0) {
-          <div class="donut-layout">
-            <div class="chart-box chart-box--donut">
-              <app-chart-canvas [config]="donutConfig()" />
+      <div class="stat-card">
+        <div class="stat-head">
+          <span class="stat-label">Movimientos</span>
+          <div class="stat-icon tx">📈</div>
+        </div>
+        <div class="stat-value">{{ d.expenseCount }}</div>
+        <div class="stat-trend">
+          <span>Este mes</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="actions-card">
+      <div class="actions-head">
+        <div>
+          <h3>Acciones rápidas</h3>
+          <p>Registra un movimiento en segundos</p>
+        </div>
+      </div>
+      <div class="actions-grid">
+        <a routerLink="/app/expenses/nuevo" class="action-btn featured">
+          <div class="action-icon">💸</div>
+          <div class="action-text">
+            <strong>Registrar gasto</strong>
+            <span>Añade un nuevo gasto</span>
+          </div>
+        </a>
+        <a routerLink="/app/incomes/new" class="action-btn">
+          <div class="action-icon">💰</div>
+          <div class="action-text">
+            <strong>Registrar ingreso</strong>
+            <span>Registra dinero recibido</span>
+          </div>
+        </a>
+        <a routerLink="/app/categorias" class="action-btn">
+          <div class="action-icon">🏷️</div>
+          <div class="action-text">
+            <strong>Categorías</strong>
+            <span>Organiza tus gastos</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Evolución financiera</div>
+            <div class="card-subtitle">
+              Ingresos vs gastos últimos 6 meses
             </div>
-            <ul class="category-list">
-              @for (
-                slice of d.expensesByCategory;
-                track trackByCategoryId($index, slice)
-              ) {
-                <li class="category-item">
-                  <span
-                    class="dot"
-                    [style.background]="
-                      slice.categoryColor ?? '#9ca3af'
-                    "
-                  ></span>
-                  <span class="category-name">{{
-                    slice.categoryName
-                  }}</span>
-                  <span class="category-amount">{{
-                    formatAmount(slice.total)
-                  }}</span>
-                  <span class="category-percentage"
-                    >{{ slice.percentage }}%</span
-                  >
-                </li>
-              }
-            </ul>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <app-chart-canvas [config]="evolutionConfig()" />
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Distribución</div>
+            <div class="card-subtitle">Gastos por categoría</div>
+          </div>
+        </div>
+
+        @if (d.expensesByCategory.length > 0) {
+          <div class="category-total">
+            <div class="category-total-label">Total gastado</div>
+            <div class="category-total-value">
+              {{ formatAmount(d.totalExpense) }}
+            </div>
+          </div>
+
+          <div class="category-donut-box">
+            <app-chart-canvas [config]="donutConfig()" />
+          </div>
+
+          <div class="category-list">
+            @for (
+              slice of d.expensesByCategory;
+              track trackByCategoryId($index, slice)
+            ) {
+              <div class="category-row">
+                <div
+                  class="cat-dot"
+                  [style.background]="slice.categoryColor ?? '#9ca3af'"
+                ></div>
+                <div class="cat-info">
+                  <div class="cat-name">{{ slice.categoryName }}</div>
+                  <div class="cat-bar">
+                    <div
+                      class="cat-bar-fill"
+                      [style.width.%]="slice.percentage"
+                      [style.background]="
+                        slice.categoryColor ?? '#6366f1'
+                      "
+                    ></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="cat-amount">{{ formatAmount(slice.total) }}</div>
+                  <div class="cat-percent">{{ slice.percentage }}%</div>
+                </div>
+              </div>
+            }
           </div>
         } @else {
           <p class="empty-note">
             Sin gastos registrados en {{ periodLabel() }}.
           </p>
         }
-      </article>
+      </div>
+    </div>
 
-      <article class="panel panel--evolution">
-        <h2>Evolución últimos 6 meses</h2>
-        <div class="chart-box chart-box--bars">
-          <app-chart-canvas [config]="evolutionConfig()" />
+    <!-- Bottom -->
+    <div class="bottom-grid">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Salud financiera</div>
+            <div class="card-subtitle">Tu balance del mes</div>
+          </div>
         </div>
-      </article>
 
-      <article class="panel panel--recent">
-        <div class="panel-header">
-          <h2>Gastos recientes</h2>
-          <a routerLink="/app/expenses" class="see-all">Ver todos</a>
+        @for (row of healthRows(); track trackByHealthKey($index, row)) {
+          <div class="health-item">
+            <div class="health-row">
+              <div class="health-label">
+                <span class="dot" [style.background]="row.color"></span>
+                {{ row.label }}
+              </div>
+              <div class="health-value" [style.color]="row.color">
+                {{ row.value }}
+              </div>
+            </div>
+            <div class="health-bar">
+              <div
+                class="health-fill"
+                [class]="row.fillClass"
+                [style.width.%]="row.percent"
+              ></div>
+            </div>
+            <div class="health-percent">{{ row.note }}</div>
+          </div>
+        }
+      </div>
+
+      <div class="card">
+        <div class="movements-head">
+          <div>
+            <div class="card-title">Movimientos recientes</div>
+            <div class="card-subtitle">Últimas transacciones</div>
+          </div>
+          <a routerLink="/app/expenses" class="view-all">Ver todos →</a>
         </div>
-        @if (d.recentExpenses.length > 0) {
-          <ul class="recent-list">
+
+        @if (d.recentActivity.length > 0) {
+          <div class="movement-list">
             @for (
-              expense of d.recentExpenses;
-              track trackByExpenseId($index, expense)
+              mv of d.recentActivity;
+              track trackByActivityId($index, mv)
             ) {
-              <li class="recent-item">
-                <span
-                  class="dot"
-                  [style.background]="expense.category.color ?? '#9ca3af'"
-                ></span>
-                <div class="recent-info">
-                  <span class="recent-description">
-                    {{
-                      expense.description ?? '(Sin descripción)'
-                    }}
-                  </span>
-                  <span class="recent-meta">
-                    {{ expense.category.name }} ·
-                    {{ formatDate(expense.expenseDate) }} ·
-                    {{ paymentMethodLabels[expense.paymentMethod] }}
-                  </span>
+              <div class="movement">
+                <div
+                  class="mv-icon"
+                  [class.expense]="mv.type === 'expense'"
+                  [class.income]="mv.type === 'income'"
+                >
+                  {{ mv.type === 'expense' ? '💸' : '💰' }}
                 </div>
-                <span class="recent-amount">{{
-                  formatAmount(expense.amount)
-                }}</span>
-              </li>
+                <div class="mv-info">
+                  <div class="mv-name">
+                    {{ mv.description ?? '(Sin descripción)' }}
+                  </div>
+                  <div class="mv-meta">
+                    <span>{{ mv.meta }}</span>
+                    <span class="sep"></span>
+                    <span>{{ formatDate(mv.date) }}</span>
+                  </div>
+                </div>
+                <div
+                  class="mv-amount"
+                  [class.expense]="mv.type === 'expense'"
+                  [class.income]="mv.type === 'income'"
+                >
+                  {{ mv.type === 'expense' ? '-' : '+' }}{{
+                    formatAmount(mv.amount)
+                  }}
+                </div>
+              </div>
             }
-          </ul>
+          </div>
         } @else {
           <p class="empty-note">
-            Aún no registras gastos. Empieza con tu primer movimiento.
+            Aún no hay movimientos. Empieza con tu primer registro.
           </p>
           <div class="empty-actions">
             <a routerLink="/app/expenses/nuevo" class="btn-primary empty-btn"
               >Registrar gasto</a
             >
             <a routerLink="/app/incomes/new" class="btn-primary empty-btn"
-               >Registrar ingreso</a
+              >Registrar ingreso</a
             >
           </div>
         }
-      </article>
+      </div>
     </div>
-  }
-</div>
+  </div>
+}

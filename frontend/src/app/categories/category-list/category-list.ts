@@ -73,11 +73,11 @@ export class CategoryList implements OnInit {
   }
 
   remove(category: Category): void {
-    if (
-      !window.confirm(
-        `¿Eliminar la categoría "${category.name}"? Solo es posible si no tiene gastos asociados.`,
-      )
-    ) {
+    const message = category.isDefault
+      ? `¿Ocultar la categoría "${category.name}"? Dejará de mostrarse en tu lista, pero no se eliminará para otros usuarios.`
+      : `¿Eliminar la categoría "${category.name}"? Solo es posible si no tiene gastos asociados.`;
+
+    if (!window.confirm(message)) {
       return;
     }
 
@@ -89,7 +89,9 @@ export class CategoryList implements OnInit {
         next: () => this.loadCategories(),
         error: () =>
           this.listError.set(
-            'No se pudo eliminar. Una categoría con gastos asociados no puede borrarse.',
+            category.isDefault
+              ? 'No se pudo ocultar la categoría. Intenta de nuevo.'
+              : 'No se pudo eliminar. Una categoría con gastos asociados no puede borrarse.',
           ),
       });
   }

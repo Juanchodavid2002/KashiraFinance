@@ -17,6 +17,9 @@ export class CategoriesService {
     return this.prisma.category.findMany({
       where: {
         OR: [{ isDefault: true }, { userId }],
+        NOT: {
+          hiddenBy: { some: { userId } },
+        },
       },
       orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
       select: {
@@ -85,11 +88,30 @@ export class CategoriesService {
 
   async remove(userId: string, id: string): Promise<void> {
     const category = await this.prisma.category.findFirst({
-      where: { id, userId },
+      where: { id },
       include: { _count: { select: { expenses: true } } },
     });
 
     if (!category) {
+      throw new NotFoundException('Categoría no encontrada');
+    }
+
+    // Categorías predeterminadas: solo se ocultan para el usuario
+    // (son globales y compartidas; nunca se borran de la BD).
+    if (category.isDefault) {
+      await this.prisma.userHiddenCategory.upsert({
+        where: {
+          userId_categoryId: { userId, categoryId: id },
+        },
+        update: {},
+        create: { userId, categoryId: id },
+      });
+
+      return;
+    }
+
+    // Categorías propias: ownership + borrado físico.
+    if (category.userId !== userId) {
       throw new NotFoundException('Categoría no encontrada');
     }
 
