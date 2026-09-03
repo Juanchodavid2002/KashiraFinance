@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, PaymentMethod } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { EnvelopesService } from '../envelopes/envelopes.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { CreateServicePaymentDto } from './dto/create-service-payment.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
@@ -13,6 +18,16 @@ const SERVICE_PAYMENTS_SELECT = {
   createdAt: true,
 } as const;
 
+const SERVICE_SELECT = {
+  id: true,
+  name: true,
+  color: true,
+  icon: true,
+  notes: true,
+  envelopeId: true,
+  envelope: { select: { id: true, name: true } },
+} as const;
+
 const DEFAULT_SERVICE_CATEGORY = 'Servicios';
 
 function toDateOnly(value: string): Date {
@@ -21,11 +36,15 @@ function toDateOnly(value: string): Date {
 
 @Injectable()
 export class ServicesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly envelopesService: EnvelopesService,
+  ) {}
 
   async list(userId: string) {
     const services = await this.prisma.service.findMany({
       where: { userId },
+      include: { envelope: { select: { id: true, name: true } } },
       orderBy: [{ createdAt: 'desc' }],
     });
 
@@ -49,6 +68,8 @@ export class ServicesService {
           color: service.color,
           icon: service.icon,
           notes: service.notes,
+          envelopeId: service.envelopeId,
+          envelope: service.envelope,
           createdAt: service.createdAt,
           updatedAt: service.updatedAt,
           totalPaid: (agg._sum.amount ?? new Prisma.Decimal(0)).toString(),
@@ -64,6 +85,7 @@ export class ServicesService {
   async getById(userId: string, id: string) {
     const service = await this.prisma.service.findFirst({
       where: { id, userId },
+      include: { envelope: { select: { id: true, name: true } } },
     });
 
     if (!service) {
@@ -89,6 +111,8 @@ export class ServicesService {
       color: service.color,
       icon: service.icon,
       notes: service.notes,
+      envelopeId: service.envelopeId,
+      envelope: service.envelope,
       createdAt: service.createdAt,
       updatedAt: service.updatedAt,
       totalPaid: (agg._sum.amount ?? new Prisma.Decimal(0)).toString(),
@@ -100,7 +124,11 @@ export class ServicesService {
     };
   }
 
-  create(userId: string, dto: CreateServiceDto) {
+  async create(userId: string, dto: CreateServiceDto) {
+    const envelopeId = dto.envelopeId
+      ? await this.resolveEnvelopeIdTx(this.prisma, userId, dto.envelopeId)
+      : null;
+
     return this.prisma.service.create({
       data: {
         userId,
@@ -108,13 +136,21 @@ export class ServicesService {
         color: dto.color ?? this.defaultColor(),
         icon: dto.icon,
         notes: dto.notes,
+        envelopeId,
       },
-      select: { id: true, name: true, color: true, icon: true, notes: true },
+      select: SERVICE_SELECT,
     });
   }
 
   async update(userId: string, id: string, dto: UpdateServiceDto) {
     await this.ensureAccessible(userId, id);
+
+    const envelopeId =
+      dto.envelopeId !== undefined
+        ? dto.envelopeId
+          ? await this.resolveEnvelopeIdTx(this.prisma, userId, dto.envelopeId)
+          : null
+        : undefined;
 
     return this.prisma.service.update({
       where: { id },
@@ -123,8 +159,9 @@ export class ServicesService {
         color: dto.color,
         icon: dto.icon,
         notes: dto.notes,
+        envelopeId,
       },
-      select: { id: true, name: true, color: true, icon: true, notes: true },
+      select: SERVICE_SELECT,
     });
   }
 
@@ -134,10 +171,36 @@ export class ServicesService {
     await this.prisma.$transaction(async (tx) => {
       const paymentRows = await tx.servicePayment.findMany({
         where: { serviceId: id },
-        select: { id: true },
+        select: { id: true, amount: true },
       });
 
-      if (paymentRows.length > 0) {
+      const expenses =
+        paymentRows.length > 0
+          ? await tx.expense.findMany({
+              where: {
+                userId,
+                servicePaymentId: { in: paymentRows.map((p) => p.id) },
+              },
+              select: { id: true },
+            })
+          : [];
+
+      if (expenses.length > 0) {
+        const movements = await tx.envelopeMovement.findMany({
+          where: { userId, expenseId: { in: expenses.map((e) => e.id) } },
+          select: { expenseId: true, envelopeId: true, amount: true },
+        });
+
+        for (const movement of movements) {
+          await this.envelopesService.reverseSpendTx(
+            tx,
+            userId,
+            movement.envelopeId,
+            movement.amount,
+            movement.expenseId!,
+          );
+        }
+
         await tx.expense.deleteMany({
           where: {
             userId,
@@ -166,6 +229,15 @@ export class ServicesService {
       const paidDate = toDateOnly(dto.paidDate ?? this.today());
       const amount = new Prisma.Decimal(dto.amount);
 
+      const service = await tx.service.findFirst({
+        where: { id: serviceId, userId },
+        select: { id: true, name: true, envelopeId: true },
+      });
+
+      if (!service) {
+        throw new NotFoundException('Servicio no encontrado');
+      }
+
       const created = await tx.servicePayment.create({
         data: {
           serviceId,
@@ -177,18 +249,30 @@ export class ServicesService {
         select: SERVICE_PAYMENTS_SELECT,
       });
 
-      await tx.expense.create({
+      const expense = await tx.expense.create({
         data: {
           userId,
           categoryId,
-          description: `Pago servicio: ${(await this.serviceNameTx(tx, serviceId)) ?? 'Servicio'}`,
+          description: `Pago servicio: ${service.name}`,
           amount,
           expenseDate: paidDate,
           paymentMethod: dto.paymentMethod ?? PaymentMethod.CASH,
           notes: dto.notes,
           servicePaymentId: created.id,
         },
+        select: { id: true },
       });
+
+      if (service.envelopeId) {
+        await this.envelopesService.spendInTx(
+          tx,
+          userId,
+          service.envelopeId,
+          amount,
+          expense.id,
+          dto.notes,
+        );
+      }
 
       return created;
     });
@@ -202,18 +286,62 @@ export class ServicesService {
     paymentId: string,
   ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
-      const deletedPayment = await tx.servicePayment.deleteMany({
+      const payment = await tx.servicePayment.findFirst({
         where: { id: paymentId, serviceId, userId },
+        select: { amount: true },
       });
 
-      if (deletedPayment.count === 0) {
+      if (!payment) {
         throw new NotFoundException('Pago no encontrado');
+      }
+
+      const expense = await tx.expense.findFirst({
+        where: { servicePaymentId: paymentId, userId },
+        select: { id: true },
+      });
+
+      const envelopeMovement = expense
+        ? await tx.envelopeMovement.findFirst({
+            where: { expenseId: expense.id, userId },
+            select: { envelopeId: true },
+          })
+        : null;
+
+      if (envelopeMovement) {
+        await this.envelopesService.reverseSpendTx(
+          tx,
+          userId,
+          envelopeMovement.envelopeId,
+          new Prisma.Decimal(payment.amount),
+          expense!.id,
+        );
       }
 
       await tx.expense.deleteMany({
         where: { userId, servicePaymentId: paymentId },
       });
+
+      await tx.servicePayment.deleteMany({
+        where: { id: paymentId, serviceId, userId },
+      });
     });
+  }
+
+  private async resolveEnvelopeIdTx(
+    db: Prisma.TransactionClient | PrismaService,
+    userId: string,
+    envelopeId: string,
+  ): Promise<string> {
+    const envelope = await db.envelope.findFirst({
+      where: { id: envelopeId, userId },
+      select: { id: true },
+    });
+
+    if (!envelope) {
+      throw new NotFoundException('Sobre no válido');
+    }
+
+    return envelope.id;
   }
 
   private async ensureAccessible(userId: string, id: string): Promise<void> {
@@ -225,18 +353,6 @@ export class ServicesService {
     if (!service) {
       throw new NotFoundException('Servicio no encontrado');
     }
-  }
-
-  private async serviceNameTx(
-    tx: Prisma.TransactionClient,
-    serviceId: string,
-  ): Promise<string | null> {
-    const service = await tx.service.findUnique({
-      where: { id: serviceId },
-      select: { name: true },
-    });
-
-    return service?.name ?? null;
   }
 
   private async resolveServiceCategoryTx(

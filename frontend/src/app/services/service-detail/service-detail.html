@@ -19,6 +19,11 @@
         @if (service.notes) {
           <p class="sub">{{ service.notes }}</p>
         }
+        @if (service.envelope) {
+          <span class="envelope-badge">
+            Se paga desde el sobre «{{ service.envelope.name }}»
+          </span>
+        }
       </div>
       <a
         [routerLink]="['/app/services', service.id, 'editar']"
@@ -56,8 +61,13 @@
     >
       <h2>Registrar pago mensual</h2>
       <p class="form-hint">
-        Al registrar el pago también se creará un gasto asociado que verás en
-        Gastos y en el Dashboard.
+        @if (service.envelope) {
+          Se descontará del saldo del sobre «{{ service.envelope.name }}» y se
+          creará un gasto asociado en Gastos y el Dashboard.
+        } @else {
+          Al registrar el pago también se creará un gasto asociado que verás en
+          Gastos y en el Dashboard.
+        }
       </p>
 
       @if (formError()) {
@@ -73,7 +83,7 @@
             step="0.01"
             min="0.01"
             formControlName="amount"
-            placeholder="0"
+            placeholder="Ej. 70000"
           />
           @if (
             paymentForm.controls.amount.invalid &&

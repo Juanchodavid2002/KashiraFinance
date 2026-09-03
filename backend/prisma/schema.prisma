@@ -16,6 +16,17 @@ enum PaymentMethod {
   OTHER
 }
 
+enum EnvelopeFrequency {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
+enum EnvelopeMovementType {
+  CONTRIBUTE
+  SPEND
+}
+
 enum DebtKind {
   ENTITY
   PERSONAL
@@ -41,6 +52,8 @@ model User {
 
   expenses            Expense[]
   incomes             Income[]
+  envelopes           Envelope[]
+  envelopeMovements   EnvelopeMovement[]
   categories          Category[]
   debts               Debt[]
   services            Service[]
@@ -113,6 +126,47 @@ model Expense {
   @@index([userId, categoryId])
   @@index([debtPaymentId])
   @@map("expenses")
+
+  envelopeMovements EnvelopeMovement[]
+}
+
+model Envelope {
+  id           String            @id @default(uuid())
+  userId       String
+  name         String
+  frequency    EnvelopeFrequency
+  dayOfMonth   Int               @default(1)
+  amount       Decimal           @db.Decimal(14, 2)
+  balance      Decimal           @db.Decimal(14, 2)
+  lastRecurredAt DateTime?
+  notes        String?
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movements    EnvelopeMovement[]
+  services     Service[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([userId, name])
+  @@map("envelopes")
+}
+
+model EnvelopeMovement {
+  id         String               @id @default(uuid())
+  envelopeId String
+  userId     String
+  type       EnvelopeMovementType
+  amount     Decimal              @db.Decimal(14, 2)
+  notes      String?
+  expenseId  String?              @unique
+  envelope   Envelope             @relation(fields: [envelopeId], references: [id], onDelete: Cascade)
+  expense    Expense?             @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+
+  @@index([envelopeId, createdAt(sort: Desc)])
+  @@index([userId])
+  @@map("envelope_movements")
 }
 
 model Income {
@@ -169,16 +223,18 @@ model DebtPayment {
 }
 
 model Service {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   userId    String
   name      String
   color     String?
   icon      String?
   notes     String?
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  envelopeId String?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  envelope  Envelope? @relation(fields: [envelopeId], references: [id], onDelete: SetNull)
   payments  ServicePayment[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@index([userId, createdAt(sort: Desc)])
   @@map("services")

@@ -31,4 +31,8 @@ export class UpdateServiceDto {
   @IsOptional()
   @IsUUID()
   categoryId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  envelopeId?: string | null;
 }

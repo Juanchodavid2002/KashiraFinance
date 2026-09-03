@@ -6,12 +6,19 @@ export interface ServicePayment {
   createdAt: string;
 }
 
+export interface ServiceEnvelopeRef {
+  id: string;
+  name: string;
+}
+
 export interface Service {
   id: string;
   name: string;
   color: string | null;
   icon: string | null;
   notes: string | null;
+  envelopeId: string | null;
+  envelope: ServiceEnvelopeRef | null;
   createdAt: string;
   updatedAt: string;
   totalPaid: string;
@@ -33,6 +40,7 @@ export interface CreateServicePayload {
   icon?: string;
   notes?: string;
   categoryId?: string;
+  envelopeId?: string | null;
 }
 
 export interface UpdateServicePayload {
@@ -41,6 +49,7 @@ export interface UpdateServicePayload {
   icon?: string;
   notes?: string;
   categoryId?: string;
+  envelopeId?: string | null;
 }
 
 export interface CreateServicePaymentPayload {

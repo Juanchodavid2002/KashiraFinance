@@ -37,6 +37,20 @@
         ></textarea>
       </div>
 
+      <div class="field">
+        <label for="envelopeId">Sobre (opcional)</label>
+        <select id="envelopeId" formControlName="envelopeId">
+          <option value="">Sin sobre</option>
+          @for (envelope of envelopes(); track envelope.id) {
+            <option [value]="envelope.id">{{ envelope.name }}</option>
+          }
+        </select>
+        <span class="field-hint">
+          Si eliges un sobre, los pagos de este servicio se descontarán de su
+          saldo.
+        </span>
+      </div>
+
       @if (formError()) {
         <p class="form-error">{{ formError() }}</p>
       }

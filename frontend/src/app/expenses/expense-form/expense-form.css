@@ -55,6 +55,11 @@ textarea:focus {
   border-color: var(--color-primary);
 }
 
+.field-hint {
+  color: var(--color-muted);
+  font-size: 0.82rem;
+}
+
 @media (max-width: 480px) {
   .row {
     grid-template-columns: 1fr;

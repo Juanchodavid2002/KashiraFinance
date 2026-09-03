@@ -100,7 +100,14 @@ export class ExpenseForm implements OnInit {
     }
 
     const value = this.form.getRawValue();
-    const payload = {
+    const payload: {
+      description?: string;
+      amount: number;
+      categoryId: string;
+      expenseDate?: string;
+      paymentMethod: PaymentMethod;
+      notes?: string;
+    } = {
       description: value.description.trim() || undefined,
       amount: value.amount as number,
       categoryId: value.categoryId,

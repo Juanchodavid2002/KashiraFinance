@@ -1,0 +1,91 @@
+<section class="page-narrow">
+  <a class="back-link" [routerLink]="['/app/envelopes']">
+    ← Volver a sobres
+  </a>
+
+  <h1>{{ isEdit ? 'Editar sobre' : 'Nuevo sobre' }}</h1>
+
+  @if (loadingEnvelope()) {
+    <p class="hint">Cargando sobre…</p>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()" class="card">
+      <div class="field">
+        <label for="name">Nombre</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="Ej. Gasolina, Mercado, Ahorros"
+        />
+        @if (invalid('name')) {
+          <span class="field-error">El nombre es obligatorio (máx. 60 caracteres).</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="frequency">Frecuencia de recarga</label>
+        <select id="frequency" formControlName="frequency">
+          @for (frequency of frequencies; track frequency) {
+            <option [value]="frequency">
+              {{ frequencyLabel(frequency) }}
+            </option>
+          }
+        </select>
+      </div>
+
+      @if (form.controls.frequency.value !== 'WEEKLY') {
+        <div class="field">
+          <label for="dayOfMonth">Día de recarga</label>
+          <input
+            id="dayOfMonth"
+            type="number"
+            formControlName="dayOfMonth"
+            min="1"
+            max="31"
+          />
+          @if (invalid('dayOfMonth')) {
+            <span class="field-error">Indica un día entre 1 y 31.</span>
+          }
+        </div>
+      }
+
+      <div class="field">
+        <label for="amount">Monto por recarga</label>
+        <input
+          id="amount"
+          type="number"
+          formControlName="amount"
+          min="0"
+          step="0.01"
+          placeholder="Ej. 100000"
+        />
+        @if (invalid('amount')) {
+          <span class="field-error">El monto debe ser mayor o igual a 0.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="notes">Notas (opcional)</label>
+        <textarea
+          id="notes"
+          formControlName="notes"
+          rows="3"
+          placeholder="Ej. Los primeros 15 días del mes"
+        ></textarea>
+      </div>
+
+      @if (formError()) {
+        <p class="form-error">{{ formError() }}</p>
+      }
+
+      <div class="actions">
+        <button type="button" class="btn-ghost" [routerLink]="['/app/envelopes']">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear sobre' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

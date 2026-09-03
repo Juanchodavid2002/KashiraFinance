@@ -30,4 +30,8 @@ export class CreateServiceDto {
   @IsOptional()
   @IsUUID()
   categoryId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  envelopeId?: string;
 }

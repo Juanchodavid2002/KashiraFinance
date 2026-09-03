@@ -71,6 +71,7 @@ export interface CreateExpensePayload {
   expenseDate?: string;
   paymentMethod?: PaymentMethod;
   notes?: string;
+  envelopeId?: string;
 }
 
 export interface UpdateExpensePayload {

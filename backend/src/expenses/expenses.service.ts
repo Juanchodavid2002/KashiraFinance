@@ -73,7 +73,7 @@ export class ExpensesService {
   async create(userId: string, dto: CreateExpenseDto) {
     await this.assertCategoryAccessible(userId, dto.categoryId);
 
-    return this.prisma.expense.create({
+    const expense = await this.prisma.expense.create({
       data: {
         userId,
         description: dto.description,
@@ -87,6 +87,8 @@ export class ExpensesService {
       },
       select: EXPENSE_SELECT,
     });
+
+    return expense;
   }
 
   async update(userId: string, id: string, dto: UpdateExpenseDto) {

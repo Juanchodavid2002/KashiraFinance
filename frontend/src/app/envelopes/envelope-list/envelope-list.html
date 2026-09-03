@@ -1,0 +1,100 @@
+<section class="page-narrow">
+  <div class="head">
+    <div>
+      <h1>Sobres</h1>
+      <p class="head-sub">Aparta dinero para metas y gastos específicos.</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="openNew()">
+      Nuevo sobre
+    </button>
+  </div>
+
+  @if (error()) {
+    <p class="form-error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="hint">Cargando sobres…</p>
+  }
+
+  @if (!loading() && envelopes().length === 0) {
+    <p class="hint">
+      Aún no tienes sobres. Crea uno para apartar dinero, por ejemplo para
+      gasolina, mercado o ahorros.
+    </p>
+  }
+
+  <ul class="envelope-items">
+    @for (envelope of envelopes(); track envelope.id) {
+      <li class="envelope-item">
+        <div class="envelope-main">
+          <div class="envelope-icon">✉️</div>
+          <div class="info">
+            <div class="name-row">
+              <span class="name">{{ envelope.name }}</span>
+              <span class="freq-badge">{{ frequencyLabel(envelope.frequency) }}</span>
+            </div>
+            <div class="meta">
+              Recarga {{ format(envelope.amount) }}
+              @if (envelope.frequency !== 'WEEKLY') {
+                · día {{ envelope.dayOfMonth }}
+              }
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="balance"
+          [class.empty]="balanceState(envelope) === 'empty'"
+          [class.low]="balanceState(envelope) === 'low'"
+        >
+          <span class="balance-label">Disponible</span>
+          <span class="balance-value">{{ format(envelope.balance) }}</span>
+        </div>
+
+        <div class="actions">
+          <button
+            type="button"
+            class="btn-ghost"
+            (click)="goDetail(envelope)"
+          >
+            Abrir
+          </button>
+          <button type="button" class="icon-btn" (click)="goEdit(envelope)">
+            Editar
+          </button>
+          <button
+            type="button"
+            class="icon-btn danger"
+            (click)="remove(envelope)"
+            [disabled]="deletingId() === envelope.id"
+          >
+            {{ deletingId() === envelope.id ? '…' : 'Eliminar' }}
+          </button>
+        </div>
+
+        <div
+          class="progress-wrap"
+          [class.empty]="balanceState(envelope) === 'empty'"
+          [class.low]="balanceState(envelope) === 'low'"
+        >
+          <div class="progress">
+            <div
+              class="progress-fill"
+              [style.width.%]="balancePercent(envelope)"
+            ></div>
+          </div>
+          <span class="progress-label">
+            {{ balancePercent(envelope) }}% de la recarga · Disponible
+            {{ format(envelope.balance) }}
+            @if (balanceState(envelope) === 'empty') {
+              · sin fondos
+            } @else if (!hasReload(envelope)) {
+              · sin recarga fija
+            }
+          </span>
+        </div>
+      </li>
+    }
+  </ul>
+</section>

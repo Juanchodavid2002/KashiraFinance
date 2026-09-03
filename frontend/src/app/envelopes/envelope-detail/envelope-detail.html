@@ -1,0 +1,340 @@
+<section class="page">
+  @if (loading() && !envelope()) {
+    <p class="hint">Cargando sobre...</p>
+  }
+
+  @if (loadError()) {
+    <p class="form-error">{{ loadError() }}</p>
+  }
+
+  @if (envelope(); as envelope) {
+    <a routerLink="/app/envelopes" class="back">← Volver a sobres</a>
+
+    <header class="detail-header">
+      <div>
+        <h1>✉️ {{ envelope.name }}</h1>
+        <p class="sub">
+          Recarga {{ frequencyLabel[envelope.frequency] }}
+          @if (envelope.frequency !== 'WEEKLY') {
+            · día {{ envelope.dayOfMonth }}
+          }
+          · {{ formatAmount(envelope.amount) }}
+        </p>
+      </div>
+      <a
+        [routerLink]="['/app/envelopes', envelope.id, 'edit']"
+        class="btn-secondary btn-edit"
+      >
+        Editar sobre
+      </a>
+    </header>
+
+    @if (envelope.notes) {
+      <p class="notes">{{ envelope.notes }}</p>
+    }
+
+    <div class="summary">
+      <div class="summary-card">
+        <span class="label">Saldo disponible</span>
+        <strong class="positive">{{ formatAmount(envelope.balance) }}</strong>
+      </div>
+      <div class="summary-card">
+        <span class="label">Aportado</span>
+        <strong>{{ formatAmount(envelope.contributedAmount) }}</strong>
+      </div>
+      <div class="summary-card">
+        <span class="label">Gastado</span>
+        <strong>{{ formatAmount(envelope.spentAmount) }}</strong>
+      </div>
+      <div class="summary-card">
+        <span class="label">Recarga</span>
+        <strong>{{ formatAmount(envelope.amount) }}</strong>
+      </div>
+    </div>
+
+    <div
+      class="progress-wrap"
+      [class.blocked]="isEmpty()"
+    >
+      <div class="progress">
+        <div
+          class="progress-fill"
+          [style.width.%]="balancePercent()"
+        ></div>
+      </div>
+      <span class="progress-label">
+        {{ balancePercent() }}% del saldo disponible
+        @if (isEmpty()) {
+          · sin fondos
+        }
+      </span>
+    </div>
+
+    <section class="actions-section">
+      <div class="section-head">
+        <h2>Registrar movimiento</h2>
+        <p class="form-hint">
+          Aporta dinero al sobre o registra un gasto desde su saldo.
+        </p>
+      </div>
+
+      @if (mode() === 'none') {
+        <div class="action-buttons">
+          <button
+            type="button"
+            class="action-card action-card--aportar"
+            (click)="selectMode('aportar')"
+            [disabled]="saving()"
+          >
+            <span class="action-icon">💰</span>
+            <span class="action-info">
+              <strong>Aportar</strong>
+              <span>Súmale dinero al sobre</span>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="action-card action-card--gastar"
+            (click)="selectMode('gastar')"
+            [disabled]="saving()"
+          >
+            <span class="action-icon">🛒</span>
+            <span class="action-info">
+              <strong>Gastar</strong>
+              <span>Registra un gasto desde el saldo</span>
+            </span>
+          </button>
+        </div>
+      }
+
+      @if (mode() === 'aportar') {
+        <form
+          [formGroup]="aportarForm"
+          (ngSubmit)="submitAportar()"
+          class="payment-form"
+        >
+          <div class="form-title-row">
+            <h3>Aportar al sobre</h3>
+            <button
+              type="button"
+              class="link-btn"
+              (click)="closeMode()"
+              [disabled]="saving()"
+            >
+              Cancelar
+            </button>
+          </div>
+          <p class="form-hint">
+            El dinero que aportes se resta de tu disponible real y se guarda
+            en este sobre.
+          </p>
+
+          @if (formError()) {
+            <p class="form-error">{{ formError() }}</p>
+          }
+
+          <div class="field">
+            <label for="aportarAmount">Monto a aportar *</label>
+            <input
+              id="aportarAmount"
+              type="number"
+              step="0.01"
+              min="0.01"
+              formControlName="amount"
+              placeholder="Ej. 50000"
+            />
+            @if (
+              aportarForm.controls.amount.invalid &&
+              (aportarForm.controls.amount.touched ||
+                aportarForm.controls.amount.dirty)
+            ) {
+              <span class="field-error">Ingresa un monto mayor a 0.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label for="aportarNotes">Notas (opcional)</label>
+            <input
+              id="aportarNotes"
+              type="text"
+              formControlName="notes"
+              placeholder="Ej. Aporte para gasolina"
+            />
+          </div>
+
+          <button type="submit" class="btn-primary" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Registrar aporte' }}
+          </button>
+        </form>
+      }
+
+      @if (mode() === 'gastar') {
+        <form
+          [formGroup]="gastarForm"
+          (ngSubmit)="submitGastar()"
+          class="payment-form"
+        >
+          <div class="form-title-row">
+            <h3>Gastar desde el sobre</h3>
+            <button
+              type="button"
+              class="link-btn"
+              (click)="closeMode()"
+              [disabled]="saving()"
+            >
+              Cancelar
+            </button>
+          </div>
+          <p class="form-hint">
+            Al registrar el gasto se descontará del saldo del sobre y también
+            aparecerá en Gastos y en el Dashboard.
+          </p>
+
+          @if (formError()) {
+            <p class="form-error">{{ formError() }}</p>
+          }
+
+          @if (isEmpty()) {
+            <div class="empty-banner">
+              El saldo del sobre es {{ formatAmount(envelope.balance) }}.
+              Aporta primero para poder gastar.
+            </div>
+          }
+
+          <div class="row">
+            <div class="field">
+              <label for="gastarAmount">Monto del gasto *</label>
+              <input
+                id="gastarAmount"
+                type="number"
+                step="0.01"
+                min="0.01"
+                formControlName="amount"
+placeholder="Ej. 30000"
+            />
+            @if (
+              gastarForm.controls.amount.invalid &&
+                (gastarForm.controls.amount.touched ||
+                  gastarForm.controls.amount.dirty)
+              ) {
+                <span class="field-error">Ingresa un monto mayor a 0.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label for="gastarDate">Fecha del gasto</label>
+              <input
+                id="gastarDate"
+                type="date"
+                formControlName="expenseDate"
+              />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="gastarDescripcion">Descripción (opcional)</label>
+            <input
+              id="gastarDescripcion"
+              type="text"
+              formControlName="description"
+              placeholder="Ej. Gasolina"
+            />
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="gastarCategoria">Categoría *</label>
+              <select id="gastarCategoria" formControlName="categoryId">
+                @for (category of categories(); track category.id) {
+                  <option [value]="category.id">{{ category.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="gastarMetodo">Método de pago</label>
+              <select id="gastarMetodo" formControlName="paymentMethod">
+                @for (method of paymentMethods; track method[0]) {
+                  <option [value]="method[0]">{{ method[1] }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="gastarNotas">Notas (opcional)</label>
+            <input
+              id="gastarNotas"
+              type="text"
+              formControlName="notes"
+              placeholder="Ej. Gastado en efectivo"
+            />
+          </div>
+
+          <button type="submit" class="btn-primary" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Registrar gasto' }}
+          </button>
+        </form>
+      }
+    </section>
+
+    <section class="history-section">
+      <div class="section-head">
+        <h2>Historial de movimientos</h2>
+        <p class="form-hint">
+          Aportes y gastos registrados en este sobre.
+        </p>
+      </div>
+
+      @if (envelope.movements.length === 0) {
+        <p class="hint">Aún no hay movimientos en este sobre.</p>
+      } @else {
+        <ul class="movement-items">
+          @for (movement of envelope.movements; track movement.id) {
+            <li class="movement-item">
+              <span
+                class="movement-badge"
+                [class.spend]="movement.type === 'SPEND'"
+              >
+                {{ movement.type === 'CONTRIBUTE' ? '+' : '−' }}
+              </span>
+              <div class="info">
+                <strong
+                  class="movement-amount"
+                  [class.spend]="movement.type === 'SPEND'"
+                >
+                  {{ movement.type === 'CONTRIBUTE' ? '+' : '−' }}
+                  {{ formatAmount(movement.amount) }}
+                </strong>
+                <span class="sub">
+                  {{ movement.type === 'CONTRIBUTE' ? 'Aporte' : 'Gasto' }}
+                  @if (movement.categoryName) {
+                    · {{ movement.categoryName }}
+                  }
+                  @if (movement.expenseDate) {
+                    · {{ formatDate(movement.expenseDate) }}
+                  }
+                </span>
+                @if (movement.notes) {
+                  <span class="note">{{ movement.notes }}</span>
+                }
+              </div>
+              <time class="date">{{ formatDate(movement.createdAt) }}</time>
+              <button
+                type="button"
+                class="icon-btn danger"
+                (click)="deleteMovement(movement)"
+                [disabled]="deletingMovementId() === movement.id"
+              >
+                {{
+                  deletingMovementId() === movement.id ? '...' : 'Eliminar'
+                }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</section>

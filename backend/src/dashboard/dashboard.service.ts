@@ -78,6 +78,7 @@ export class DashboardService {
       previousExpenseSum,
       debtPaymentThisMonth,
       pendingDebts,
+      envelopeBalanceSum,
     ] = await Promise.all([
       this.prisma.income.aggregate({
         where: {
@@ -143,11 +144,20 @@ export class DashboardService {
         _sum: { amount: true },
       }),
       this.debtPendingSummary(userId),
+      this.prisma.envelope.aggregate({
+        where: { userId },
+        _sum: { balance: true },
+      }),
     ]);
 
     const totalIncome = new Prisma.Decimal(incomeSum._sum.amount ?? 0);
     const totalExpense = new Prisma.Decimal(expenseSum._sum.amount ?? 0);
-    const available = totalIncome.minus(totalExpense);
+
+    const envelopeBalance = new Prisma.Decimal(
+      envelopeBalanceSum._sum.balance ?? 0,
+    );
+
+    const available = totalIncome.minus(totalExpense).minus(envelopeBalance);
     const previousMonthExpense = new Prisma.Decimal(
       previousExpenseSum._sum.amount ?? 0,
     );

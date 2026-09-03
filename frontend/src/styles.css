@@ -89,6 +89,24 @@ body {
   border-color: var(--color-primary);
 }
 
+.field select {
+  height: 44px;
+  padding: 0 var(--spacing-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.field select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
 .field-error {
   color: var(--color-danger);
   font-size: 0.82rem;
@@ -130,6 +148,97 @@ body {
 .field input,
 button {
   min-height: 44px;
+}
+
+/* ===================== BOTONES SECUNDARIOS Y DE ACCIÓN ===================== */
+.btn-secondary,
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 var(--spacing-4);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn-secondary {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-muted);
+}
+
+.btn-secondary:hover:not(:disabled),
+.btn-secondary.active {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+}
+
+.btn-ghost:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--spacing-4);
+  text-decoration: none;
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  padding: var(--spacing-1) var(--spacing-2);
+  min-height: auto;
+  border-radius: var(--radius-md);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.icon-btn:hover:not(:disabled) {
+  color: var(--color-primary-dark);
+  background: var(--color-primary-soft);
+}
+
+.icon-btn.danger {
+  color: var(--color-danger);
+}
+
+.icon-btn.danger:hover:not(:disabled) {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
 }
 
 /* ===================== TOASTS (ngx-toastr) ===================== */

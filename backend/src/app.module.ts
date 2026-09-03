@@ -6,6 +6,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { CategoriesModule } from './categories/categories.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { DebtsModule } from './debts/debts.module';
+import { EnvelopesModule } from './envelopes/envelopes.module';
 import { ExpensesModule } from './expenses/expenses.module';
 import { HealthModule } from './health/health.module';
 import { IncomesModule } from './incomes/incomes.module';
@@ -41,6 +42,7 @@ function validateEnv(config: Record<string, unknown>): Record<string, unknown> {
     ExpensesModule,
     IncomesModule,
     DebtsModule,
+    EnvelopesModule,
     ServicesModule,
     DashboardModule,
   ],

@@ -55,6 +55,17 @@
   white-space: nowrap;
 }
 
+.envelope-badge {
+  display: inline-block;
+  margin-top: var(--spacing-2);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 .summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

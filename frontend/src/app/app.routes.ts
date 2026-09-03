@@ -76,6 +76,34 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'envelopes',
+        loadComponent: () =>
+          import('./envelopes/envelope-list/envelope-list').then(
+            (m) => m.EnvelopeList,
+          ),
+      },
+      {
+        path: 'envelopes/new',
+        loadComponent: () =>
+          import('./envelopes/envelope-form/envelope-form').then(
+            (m) => m.EnvelopeForm,
+          ),
+      },
+      {
+        path: 'envelopes/:id/edit',
+        loadComponent: () =>
+          import('./envelopes/envelope-form/envelope-form').then(
+            (m) => m.EnvelopeForm,
+          ),
+      },
+      {
+        path: 'envelopes/:id/detail',
+        loadComponent: () =>
+          import('./envelopes/envelope-detail/envelope-detail').then(
+            (m) => m.EnvelopeDetailComponent,
+          ),
+      },
+      {
         path: 'incomes',
         loadComponent: () =>
           import('./incomes/income-list/income-list').then((m) => m.IncomeList),

@@ -8,7 +8,9 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { ServiceService } from '../../core/services/service.service';
+import { EnvelopeService } from '../../core/services/envelope.service';
 import { ToastService } from '../../core/services/toast.service';
+import type { Envelope } from '../../core/models/envelope.models';
 
 @Component({
   selector: 'app-service-form',
@@ -21,6 +23,7 @@ export class ServiceForm implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly serviceService = inject(ServiceService);
+  private readonly envelopeService = inject(EnvelopeService);
   private readonly toast = inject(ToastService);
 
   serviceId: string | null = null;
@@ -29,14 +32,21 @@ export class ServiceForm implements OnInit {
   readonly saving = signal(false);
   readonly loadingService = signal(false);
   readonly formError = signal('');
+  readonly envelopes = signal<Envelope[]>([]);
 
   readonly form = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(200)]],
     color: [''],
     notes: [''],
+    envelopeId: [''],
   });
 
   ngOnInit(): void {
+    this.envelopeService.list().subscribe({
+      next: (envelopes) => this.envelopes.set(envelopes),
+      error: () => this.formError.set('No se pudieron cargar los sobres.'),
+    });
+
     const id = this.route.snapshot.paramMap.get('id');
 
     if (!id || id === 'new') {
@@ -56,6 +66,7 @@ export class ServiceForm implements OnInit {
             name: service.name,
             color: service.color ?? '',
             notes: service.notes ?? '',
+            envelopeId: service.envelopeId ?? '',
           }),
         error: () =>
           this.formError.set('No se pudo cargar el servicio solicitado.'),
@@ -69,10 +80,16 @@ export class ServiceForm implements OnInit {
     }
 
     const value = this.form.getRawValue();
-    const payload = {
+    const payload: {
+      name: string;
+      color?: string;
+      notes?: string;
+      envelopeId?: string | null;
+    } = {
       name: value.name.trim(),
       color: value.color || undefined,
       notes: value.notes.trim() || undefined,
+      envelopeId: value.envelopeId ? value.envelopeId : null,
     };
 
     this.saving.set(true);
@@ -104,7 +121,9 @@ export class ServiceForm implements OnInit {
     });
   }
 
-  invalid(controlName: 'name' | 'color' | 'notes'): boolean {
+  invalid(
+    controlName: 'name' | 'color' | 'notes' | 'envelopeId',
+  ): boolean {
     const control = this.form.controls[controlName];
 
     return control.invalid && (control.touched || control.dirty);
