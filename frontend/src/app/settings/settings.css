@@ -85,3 +85,26 @@ h1 {
   font-size: 0.85rem;
   line-height: 1.5;
 }
+
+@media (max-width: 640px) {
+  .page-narrow {
+    max-width: none;
+    padding: var(--spacing-4) var(--spacing-3);
+  }
+
+  h1 {
+    font-size: 1.4rem;
+  }
+
+  .field select {
+    max-width: none;
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: var(--spacing-4);
+  }
+}

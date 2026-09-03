@@ -31,7 +31,10 @@ frontend/src/app/
 │   │   ├── expense.service.ts
 │   │   ├── income.service.ts
 │   │   ├── category.service.ts
-│   │   └── dashboard.service.ts
+│   │   ├── dashboard.service.ts
+│   │   └── toast.service.ts            # wrapper de ngx-toastr
+│   ├── utils/
+│   │   └── confirm.ts                  # confirmAction() con SweetAlert2
 │   ├── models/
 │   │   ├── user.model.ts
 │   │   ├── expense.model.ts
@@ -142,8 +145,56 @@ Tema claro inicial; dark mode como mejora futura (los tokens lo habilitan).
 
 Configuración con archivos `environment.development.ts` / `environment.ts` (fileReplacements de Angular).
 
-## 10. Calidad
+## 10. Diseño responsive (obligatorio)
+
+> Regla de proyecto: **todo diseño, tanto el existente como el nuevo, debe verse y funcionar correctamente en tablet, celular y portátil**. Esta regla es mandatoria y debe revisarse en cada cambio de UI o refactor de estilos.
+
+### Breakpoints oficiales
+
+| Breakpoint | Aplica a | Notas |
+|------------|----------|-------|
+| `max-width: 1200px` | Portátil grande / escritorio compacto | Rejillas de varias columnas pasan a menos columnas |
+| `max-width: 900px` | Tablet (horizontal) y portátil pequeño | Ajustes intermedios de grids, gaps y tarjetas |
+| `max-width: 640px` | Tablet vertical y celular grande | Layouts colapsan a 1 columna, sidebar se vuelve off-canvas |
+| `max-width: 480px` | Celular | Tipografías y paddings más compactos |
+| `max-width: 400px` | Celular pequeño | Casos extremos (flechas de mes, controles) |
+
+### Pautas obligatorias
+
+- **Unidades fluidas en tipografía**: usar `rem`/`em`; preferir `clamp()` para títulos de gran tamaño.
+- **Layouts con `grid`/`flexbox`**: usar `repeat(auto-fit, minmax(...))` o breakpoints para colapsar columnas. Nunca columnas fijas sin adaptación.
+- **Nunca ocultar datos críticos**: p. ej. el **monto** en listados de gastos/ingresos debe permanecer visible en móvil (se reorganiza la tarjeta, no se elimina).
+- **Targets táctiles ≥ 44px** en botones, enlaces y campos (ya aplicado globalmente en `styles.css`).
+- **Contenedores con `max-width`**: usar `min(max-width, 100%)` / `max-width: min(...)` para evitar desbordes horizontales.
+- **Sidebar**: en pantallas < 900px colapsa a off-canvas con overlay (`shell.css`).
+- **Spacing/dimensiones**: mantener las CSS variables (`--spacing-*`, `--radius-*`) y ajustar por breakpoint; no reemplazar por px sueltos.
+- **Cada componente** debe incluir al menos un `@media (max-width: 640px)` (o menor) que verifique el colapso a una columna y la visibilidad de la información clave.
+
+### Responsive específico por área (estado actual)
+
+- **Shell/layout**: sidebar off-canvas a ≤900px, menú hamburguesa. ✅
+- **Landing, Login y Register**: multi-breakpoint incluidos de altura de pantalla; uso extenso de `clamp()`. ✅
+- **Listados (gastos/ingresos)**: en móvil cada registro se apila en tarjeta y el **monto queda siempre visible**. ✅
+- **Detalles (deuda/servicio)**: summary, formularios y filas de pago colapsan a 1 columna en móvil. ✅
+- **Dashboard**: breakpoints de 1200px/900px/640px/400px. ✅
+- **Settings / servicios (lista y form)**: breakpoints añadidos a ≤640px y ≤480px. ✅
+
+### Responsive de las alertas (toasts y confirmaciones)
+
+- **Toasts (`ngx-toastr`)**: en pantallas ≤640px los toasts se anclan a los bordes laterales con margen de 8px y ancho fluido; en ≤480px la tipografía se compacta y el botón de cierre cumple target táctil ≥44px. Estilos en `styles.css`.
+- **Confirmaciones (`SweetAlert2`)**: diálogos auto-adaptables por defecto; en móvil se anclan al ancho del viewport con `confirmAction()` como único helper (sustituye a `window.confirm`/`confirm`).
+
+## 11. Sistema de alertas y confirmaciones
+
+- **Toasts**: `ngx-toastr` expuesto a través del wrapper `ToastService` (`core/services/toast.service.ts`), con `provideToastr()` en `app.config.ts` (modo standalone, sin `ToastrModule`).
+  - Config global: posición `toast-top-right`, `timeOut: 3500`, `closeButton`, `progressBar`, `newestOnTop`, `preventDuplicates`, `tapToDismiss: false`.
+  - Métodos: `success/error/info/warning/fromHttpError`.
+  - `error.interceptor.ts` muestra toasts globales: 401 (sesión expirada, solo si el usuario estaba autenticado) y errores no gestionados inline (excluye 400/409/422 que maneja cada formulario).
+- **Confirmaciones**: SweetAlert2 vía `confirmAction()` (`core/utils/confirm.ts`), devuelve `Promise<boolean>`; se usa en todas las acciones destructivas (eliminar gasto, ingreso, categoría, deuda, servicio, pago, etc.).
+
+## 12. Calidad
 
 - `ng build` sin errores ni warnings bloqueantes.
 - Templates con `strictTemplates` activado.
 - Nombres en inglés para código, textos visibles en español.
+- **Responsive**: cada cambio de UI se valida en mínimo 3 viewports (portátil ~1280px, tablet ~768px, celular ~360px).

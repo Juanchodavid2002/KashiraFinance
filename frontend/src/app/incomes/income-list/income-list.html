@@ -66,9 +66,11 @@
             }
           </div>
 
-          <time class="date">{{ formatDate(income.incomeDate) }}</time>
+          <div class="meta">
+            <time class="date">{{ formatDate(income.incomeDate) }}</time>
 
-          <span class="amount positive">{{ formatAmount(income.amount) }}</span>
+            <span class="amount positive">{{ formatAmount(income.amount) }}</span>
+          </div>
 
           <div class="actions">
             <a

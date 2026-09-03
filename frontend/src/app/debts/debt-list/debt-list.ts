@@ -5,6 +5,8 @@ import { finalize } from 'rxjs';
 
 import { DebtService } from '../../core/services/debt.service';
 import { CurrencyService } from '../../core/services/currency.service';
+import { ToastService } from '../../core/services/toast.service';
+import { confirmAction } from '../../core/utils/confirm';
 import { formatAmount, formatDate } from '../../core/utils/format';
 import type {
   DebtListItem,
@@ -21,6 +23,7 @@ export class DebtList implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly debtService = inject(DebtService);
   private readonly currencyService = inject(CurrencyService);
+  private readonly toast = inject(ToastService);
 
   readonly formatAmount = (amount: string | number) =>
     formatAmount(amount, this.currencyService.currency());
@@ -83,8 +86,15 @@ export class DebtList implements OnInit {
     this.loadDebts(targetPage);
   }
 
-  deleteDebt(debt: DebtListItem): void {
-    if (!window.confirm(`¿Eliminar la deuda "${debt.name}"? Esta acción no se puede deshacer.`)) {
+  async deleteDebt(debt: DebtListItem): Promise<void> {
+    const confirmed = await confirmAction({
+      title: '¿Eliminar deuda?',
+      text: `¿Eliminar la deuda "${debt.name}"? Esta acción no se puede deshacer.`,
+      confirmText: 'Sí, eliminar',
+      danger: true,
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -93,8 +103,14 @@ export class DebtList implements OnInit {
       .remove(debt.id)
       .pipe(finalize(() => this.deletingId.set(null)))
       .subscribe({
-        next: () => this.loadDebts(),
-        error: () => this.listError.set('No se pudo eliminar la deuda.'),
+        next: () => {
+          this.toast.success('Deuda eliminada', debt.name);
+          this.loadDebts();
+        },
+        error: () => {
+          this.listError.set('No se pudo eliminar la deuda.');
+          this.toast.error('No se pudo eliminar la deuda');
+        },
       });
   }
 

@@ -95,7 +95,7 @@
 
 .income-item {
   display: grid;
-  grid-template-columns: auto 1fr auto auto auto;
+  grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: var(--spacing-3);
   background: var(--color-surface);
@@ -146,6 +146,13 @@
   white-space: nowrap;
 }
 
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  white-space: nowrap;
+}
+
 .actions {
   display: flex;
   gap: var(--spacing-2);
@@ -189,26 +196,39 @@
 }
 
 @media (max-width: 640px) {
+  .page {
+    max-width: none;
+    padding: var(--spacing-4) var(--spacing-3);
+  }
+
   .income-item {
     grid-template-columns: auto 1fr;
     grid-template-areas:
       'badge info'
-      'badge sub'
+      'badge meta'
       'actions actions';
     row-gap: var(--spacing-2);
   }
 
   .badge {
     grid-area: badge;
+    align-self: start;
+    margin-top: 2px;
   }
 
   .info {
     grid-area: info;
   }
 
-  .date,
-  .amount {
-    display: none;
+  .meta {
+    grid-area: meta;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-left: var(--spacing-2);
+  }
+
+  .meta .amount {
+    font-size: 1.05rem;
   }
 
   .actions {

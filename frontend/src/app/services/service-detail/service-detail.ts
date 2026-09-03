@@ -9,6 +9,8 @@ import { finalize } from 'rxjs';
 
 import { ServiceService } from '../../core/services/service.service';
 import { CurrencyService } from '../../core/services/currency.service';
+import { ToastService } from '../../core/services/toast.service';
+import { confirmAction } from '../../core/utils/confirm';
 import { formatAmount, formatDate, todayIsoDate } from '../../core/utils/format';
 import type {
   ServiceDetail,
@@ -26,6 +28,7 @@ export class ServiceDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly serviceService = inject(ServiceService);
   private readonly currencyService = inject(CurrencyService);
+  private readonly toast = inject(ToastService);
 
   readonly formatAmount = (amount: string | number) =>
     formatAmount(amount, this.currencyService.currency());
@@ -74,23 +77,36 @@ export class ServiceDetailComponent implements OnInit {
       .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
         next: () => {
-          this.paymentForm.reset({ amount: null, paidDate: todayIsoDate(), notes: '' });
+          this.toast.success(
+            'Pago registrado',
+            this.formatAmount(value.amount as number),
+          );
+          this.paymentForm.reset({
+            amount: null,
+            paidDate: todayIsoDate(),
+            notes: '',
+          });
           this.load();
         },
-        error: (err) =>
-          this.formError.set(
+        error: (err) => {
+          const message =
             err?.error?.message?.[0] ??
-              'No se pudo registrar el pago. Intenta de nuevo.',
-          ),
+            'No se pudo registrar el pago. Intenta de nuevo.';
+          this.formError.set(message);
+          this.toast.error('No se pudo registrar el pago', message);
+        },
       });
   }
 
-  deletePayment(payment: ServicePayment): void {
-    if (
-      !window.confirm(
-        `¿Eliminar el pago de ${this.formatAmount(payment.amount)}? Esta acción no se puede deshacer.`,
-      )
-    ) {
+  async deletePayment(payment: ServicePayment): Promise<void> {
+    const confirmed = await confirmAction({
+      title: '¿Eliminar pago?',
+      text: `¿Eliminar el pago de ${this.formatAmount(payment.amount)}? Esta acción no se puede deshacer.`,
+      confirmText: 'Sí, eliminar',
+      danger: true,
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -99,9 +115,20 @@ export class ServiceDetailComponent implements OnInit {
       .removePayment(this.serviceId, payment.id)
       .pipe(finalize(() => this.deletingPaymentId.set(null)))
       .subscribe({
-        next: () => this.load(),
-        error: () =>
-          this.formError.set('No se pudo eliminar el pago. Intenta de nuevo.'),
+        next: () => {
+          this.toast.success(
+            'Pago eliminado',
+            this.formatAmount(payment.amount),
+          );
+          this.load();
+        },
+        error: (err) => {
+          const message =
+            err?.error?.message?.[0] ??
+            'No se pudo eliminar el pago. Intenta de nuevo.';
+          this.formError.set(message);
+          this.toast.error('No se pudo eliminar el pago', message);
+        },
       });
   }
 

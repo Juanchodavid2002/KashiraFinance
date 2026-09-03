@@ -853,6 +853,20 @@
   }
 }
 
+@media (max-width: 900px) {
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .summary-grid {
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+}
+
 @media (max-width: 640px) {
   .summary-grid {
     grid-template-columns: 1fr;
@@ -877,5 +891,20 @@
 
   .month-control {
     align-self: flex-start;
+  }
+}
+
+@media (max-width: 400px) {
+  .dashboard {
+    gap: 16px;
+  }
+
+  .month-control {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .month-label {
+    padding: 0 10px;
   }
 }

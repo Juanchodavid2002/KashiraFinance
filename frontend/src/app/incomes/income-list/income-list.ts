@@ -5,6 +5,8 @@ import { finalize } from 'rxjs';
 
 import { IncomeService } from '../../core/services/income.service';
 import { CurrencyService } from '../../core/services/currency.service';
+import { ToastService } from '../../core/services/toast.service';
+import { confirmAction } from '../../core/utils/confirm';
 import { formatAmount, formatDate } from '../../core/utils/format';
 import type { Income, IncomeListMeta } from '../../core/models/income.models';
 
@@ -18,6 +20,7 @@ export class IncomeList implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly incomeService = inject(IncomeService);
   private readonly currencyService = inject(CurrencyService);
+  private readonly toast = inject(ToastService);
 
   readonly formatAmount = (amount: string | number) =>
     formatAmount(amount, this.currencyService.currency());
@@ -67,10 +70,17 @@ export class IncomeList implements OnInit {
     this.loadIncomes(targetPage);
   }
 
-  deleteIncome(income: Income): void {
+  async deleteIncome(income: Income): Promise<void> {
     const label = income.description ?? 'este ingreso';
 
-    if (!window.confirm(`¿Eliminar "${label}"? Esta acción no se puede deshacer.`)) {
+    const confirmed = await confirmAction({
+      title: '¿Eliminar ingreso?',
+      text: `¿Eliminar "${label}"? Esta acción no se puede deshacer.`,
+      confirmText: 'Sí, eliminar',
+      danger: true,
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -79,8 +89,14 @@ export class IncomeList implements OnInit {
       .remove(income.id)
       .pipe(finalize(() => this.deletingId.set(null)))
       .subscribe({
-        next: () => this.loadIncomes(),
-        error: () => this.listError.set('No se pudo eliminar el ingreso.'),
+        next: () => {
+          this.toast.success('Ingreso eliminado', label);
+          this.loadIncomes();
+        },
+        error: () => {
+          this.listError.set('No se pudo eliminar el ingreso.');
+          this.toast.error('No se pudo eliminar el ingreso');
+        },
       });
   }
 

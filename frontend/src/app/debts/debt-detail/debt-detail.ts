@@ -10,6 +10,8 @@ import { finalize } from 'rxjs';
 import { DebtService } from '../../core/services/debt.service';
 import { CategoryService } from '../../core/services/category.service';
 import { CurrencyService } from '../../core/services/currency.service';
+import { ToastService } from '../../core/services/toast.service';
+import { confirmAction } from '../../core/utils/confirm';
 import {
   formatAmount,
   formatDate,
@@ -34,6 +36,7 @@ export class DebtDetailComponent implements OnInit {
   private readonly debtService = inject(DebtService);
   private readonly categoryService = inject(CategoryService);
   private readonly currencyService = inject(CurrencyService);
+  private readonly toast = inject(ToastService);
 
   readonly formatAmount = (amount: string | number) =>
     formatAmount(amount, this.currencyService.currency());
@@ -47,6 +50,7 @@ export class DebtDetailComponent implements OnInit {
   readonly deletingPaymentId = signal<string | null>(null);
   readonly formError = signal('');
   readonly loadError = signal('');
+  readonly mode = signal<'none' | 'cuota' | 'abono'>('none');
 
   readonly categories = signal<Category[]>([]);
   readonly paymentMethods = Object.entries(PAYMENT_METHOD_LABELS) as [
@@ -91,7 +95,51 @@ export class DebtDetailComponent implements OnInit {
     return Math.min(100, Math.round((paid / total) * 100));
   };
 
-  addPayment(): void {
+  readonly hasInstallment = (): boolean => {
+    const d = this.debt();
+
+    return !!d && !!d.installmentAmount;
+  };
+
+  readonly noCuotasLeft = (): boolean => {
+    const d = this.debt();
+
+    return (
+      !!d &&
+      d.totalInstallments !== null &&
+      d.paidInstallments !== null &&
+      d.paidInstallments >= d.totalInstallments
+    );
+  };
+
+  selectMode(next: 'cuota' | 'abono'): void {
+    if (this.saving()) {
+      return;
+    }
+
+    this.formError.set('');
+    this.paymentForm.reset({
+      amount: next === 'cuota' ? this.installmentAmount() : null,
+      paidDate: todayIsoDate(),
+      notes: '',
+      categoryId: this.defaultCategoryId(),
+      paymentMethod: 'CASH',
+    });
+    this.mode.set(next);
+  }
+
+  closeMode(): void {
+    this.mode.set('none');
+    this.formError.set('');
+  }
+
+  private installmentAmount(): number | null {
+    const amount = this.debt()?.installmentAmount;
+
+    return amount ? Number(amount) : null;
+  }
+
+  submitAbono(): void {
     if (this.paymentForm.invalid || this.saving()) {
       this.paymentForm.markAllAsTouched();
       return;
@@ -99,20 +147,63 @@ export class DebtDetailComponent implements OnInit {
 
     const value = this.paymentForm.getRawValue();
 
+    this.addPayment({
+      amount: value.amount as number,
+      paidDate: value.paidDate || undefined,
+      notes: value.notes.trim() || undefined,
+      categoryId: value.categoryId,
+      paymentMethod: value.paymentMethod,
+    });
+  }
+
+  payInstallment(): void {
+    if (this.saving() || this.noCuotasLeft()) {
+      return;
+    }
+
+    const amount = this.installmentAmount();
+
+    if (!amount) {
+      this.formError.set(
+        'Esta deuda no tiene un valor de cuota definido. Edítala para configurarlo.',
+      );
+      return;
+    }
+
+    this.addPayment({
+      amount,
+      paidDate: this.paymentForm.controls.paidDate.value || undefined,
+      notes: this.paymentForm.controls.notes.value.trim() || undefined,
+      categoryId: this.paymentForm.controls.categoryId.value,
+      paymentMethod: this.paymentForm.controls.paymentMethod.value,
+      installment: true,
+    });
+  }
+
+  private addPayment(
+    payload: {
+      amount: number;
+      paidDate?: string;
+      notes?: string;
+      categoryId?: string;
+      paymentMethod?: string;
+      installment?: boolean;
+    },
+  ): void {
     this.saving.set(true);
     this.formError.set('');
 
     this.debtService
-      .addPayment(this.debtId, {
-        amount: value.amount as number,
-        paidDate: value.paidDate || undefined,
-        notes: value.notes.trim() || undefined,
-        categoryId: value.categoryId,
-        paymentMethod: value.paymentMethod,
-      })
+      .addPayment(this.debtId, payload)
       .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
         next: () => {
+          this.toast.success(
+            payload.installment ? 'Cuota pagada' : 'Abono registrado',
+            payload.installment
+              ? `Se registró una cuota de ${this.formatAmount(payload.amount)}.`
+              : `Se abonaron ${this.formatAmount(payload.amount)} a la deuda.`,
+          );
           this.paymentForm.reset({
             amount: null,
             paidDate: todayIsoDate(),
@@ -120,22 +211,28 @@ export class DebtDetailComponent implements OnInit {
             categoryId: this.defaultCategoryId(),
             paymentMethod: 'CASH',
           });
+          this.mode.set('none');
           this.loadDebt();
         },
-        error: (err) =>
-          this.formError.set(
+        error: (err) => {
+          const message =
             err?.error?.message?.[0] ??
-              'No se pudo registrar el abono. Intenta de nuevo.',
-          ),
+            'No se pudo registrar el pago. Intenta de nuevo.';
+          this.formError.set(message);
+          this.toast.error('No se pudo registrar el pago', message);
+        },
       });
   }
 
-  deletePayment(payment: DebtPayment): void {
-    if (
-      !window.confirm(
-        `¿Eliminar el abono de ${this.formatAmount(payment.amount)}? Esta acción no se puede deshacer.`,
-      )
-    ) {
+  async deletePayment(payment: DebtPayment): Promise<void> {
+    const confirmed = await confirmAction({
+      title: '¿Eliminar pago?',
+      text: `¿Eliminar el pago de ${this.formatAmount(payment.amount)}? Esta acción no se puede deshacer.`,
+      confirmText: 'Sí, eliminar',
+      danger: true,
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -144,8 +241,20 @@ export class DebtDetailComponent implements OnInit {
       .removePayment(this.debtId, payment.id)
       .pipe(finalize(() => this.deletingPaymentId.set(null)))
       .subscribe({
-        next: () => this.loadDebt(),
-        error: () => this.formError.set('No se pudo eliminar el abono.'),
+        next: () => {
+          this.toast.success(
+            'Pago eliminado',
+            this.formatAmount(payment.amount),
+          );
+          this.loadDebt();
+        },
+        error: (err) => {
+          const message =
+            err?.error?.message?.[0] ??
+            'No se pudo eliminar el abono. Intenta de nuevo.';
+          this.formError.set(message);
+          this.toast.error('No se pudo eliminar el pago', message);
+        },
       });
   }
 
@@ -161,7 +270,18 @@ export class DebtDetailComponent implements OnInit {
       .getById(this.debtId)
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: (debt) => this.debt.set(debt),
+        next: (debt) => {
+          this.debt.set(debt);
+
+          if (this.mode() !== 'none') {
+            this.paymentForm.controls.amount.setValue(
+              this.mode() === 'cuota' ? this.installmentAmount() : null,
+            );
+            this.paymentForm.controls.categoryId.setValue(
+              this.defaultCategoryId(),
+            );
+          }
+        },
         error: () =>
           this.loadError.set('No se pudo cargar la deuda. Intenta de nuevo.'),
       });

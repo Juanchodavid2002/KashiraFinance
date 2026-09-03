@@ -7,6 +7,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -18,6 +19,7 @@ export class Login {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   readonly submitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
@@ -43,14 +45,16 @@ export class Login {
 
     this.authService.login(this.form.getRawValue()).subscribe({
       next: () => {
+        this.toast.success('Bienvenido', 'Sesión iniciada correctamente.');
         void this.router.navigate(['/app/dashboard']);
       },
       error: (error: { status: number }) => {
-        this.errorMessage.set(
+        const message =
           error.status === 401
             ? 'Credenciales inválidas'
-            : 'No se pudo iniciar sesión. Intenta nuevamente.',
-        );
+            : 'No se pudo iniciar sesión. Intenta nuevamente.';
+        this.errorMessage.set(message);
+        this.toast.error('No se pudo iniciar sesión', message);
         this.submitting.set(false);
       },
     });

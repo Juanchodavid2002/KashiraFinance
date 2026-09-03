@@ -16,6 +16,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 
 type Step = 'email' | 'code' | 'new-password' | 'done';
 
@@ -32,6 +33,7 @@ export class ForgotPassword implements OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   readonly codeLength = CODE_LENGTH;
 
@@ -93,6 +95,7 @@ export class ForgotPassword implements OnDestroy {
       next: ({ message }) => {
         this.userEmail.set(this.emailForm.getRawValue().email.trim().toLowerCase());
         this.infoMessage.set(message);
+        this.toast.success('Código enviado', 'Revisa tu bandeja de entrada.');
         this.step.set('code');
         this.startCooldown();
         this.submitting.set(false);
@@ -215,6 +218,7 @@ export class ForgotPassword implements OnDestroy {
       .subscribe({
         next: ({ message }) => {
           this.infoMessage.set(message);
+          this.toast.success('Contraseña actualizada', 'Inicia sesión con tu nueva contraseña.');
           this.step.set('done');
           this.submitting.set(false);
         },
@@ -239,6 +243,7 @@ export class ForgotPassword implements OnDestroy {
       next: () => {
         this.digits.forEach((control) => control.setValue(''));
         this.infoMessage.set('Te enviamos un nuevo código. Revisa tu bandeja de entrada.');
+        this.toast.success('Código reenviado', 'Revisa tu bandeja de entrada.');
         this.startCooldown();
         this.submitting.set(false);
         this.focusDigit(0);

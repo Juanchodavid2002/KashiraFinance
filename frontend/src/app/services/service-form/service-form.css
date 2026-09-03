@@ -81,3 +81,30 @@ h1 {
   gap: var(--spacing-2);
   margin-top: var(--spacing-1);
 }
+
+@media (max-width: 640px) {
+  .page-narrow {
+    max-width: none;
+    padding: var(--spacing-4) var(--spacing-3);
+  }
+
+  h1 {
+    font-size: 1.4rem;
+  }
+
+  .field input:not([type='color']),
+  .field textarea {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .actions .btn-primary,
+  .actions button {
+    width: 100%;
+  }
+}

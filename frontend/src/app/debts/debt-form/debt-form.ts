@@ -14,6 +14,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription, finalize } from 'rxjs';
 
 import { DebtService } from '../../core/services/debt.service';
+import { ToastService } from '../../core/services/toast.service';
 import { todayIsoDate } from '../../core/utils/format';
 import type { DebtKind } from '../../core/models/debt.models';
 
@@ -40,6 +41,7 @@ export class DebtForm implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly debtService = inject(DebtService);
+  private readonly toast = inject(ToastService);
 
   private readonly valueSubscription: Subscription;
 
@@ -198,15 +200,23 @@ export class DebtForm implements OnInit, OnDestroy {
         : this.debtService.create(payload);
 
     request.pipe(finalize(() => this.saving.set(false))).subscribe({
-      next: () =>
+      next: () => {
+        const debtName = value.name.trim();
+        this.toast.success(
+          this.debtId !== null ? 'Deuda actualizada' : 'Deuda creada',
+          debtName,
+        );
         void this.router.navigate(
           this.debtId !== null ? ['/app/debts', this.debtId] : ['/app/debts'],
-        ),
-      error: (err) =>
-        this.formError.set(
+        );
+      },
+      error: (err) => {
+        const message =
           err?.error?.message?.[0] ??
-            'No se pudo guardar la deuda. Revisa los datos e intenta de nuevo.',
-        ),
+          'No se pudo guardar la deuda. Revisa los datos e intenta de nuevo.';
+        this.formError.set(message);
+        this.toast.error('No se pudo guardar la deuda', message);
+      },
     });
   }
 

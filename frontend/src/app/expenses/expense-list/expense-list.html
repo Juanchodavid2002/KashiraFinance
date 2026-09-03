@@ -90,9 +90,11 @@
             </span>
           </div>
 
-          <time class="date">{{ formatDate(expense.expenseDate) }}</time>
+          <div class="meta">
+            <time class="date">{{ formatDate(expense.expenseDate) }}</time>
 
-          <span class="amount">{{ formatAmount(expense.amount) }}</span>
+            <span class="amount">{{ formatAmount(expense.amount) }}</span>
+          </div>
 
           <div class="actions">
             <a

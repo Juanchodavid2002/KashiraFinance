@@ -9,6 +9,7 @@ import { finalize } from 'rxjs';
 
 import { CategoryService } from '../../core/services/category.service';
 import { ExpenseService } from '../../core/services/expense.service';
+import { ToastService } from '../../core/services/toast.service';
 import {
   PAYMENT_METHOD_LABELS,
   todayIsoDate,
@@ -28,6 +29,7 @@ export class ExpenseForm implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
   private readonly expenseService = inject(ExpenseService);
   private readonly categoryService = inject(CategoryService);
 
@@ -116,11 +118,21 @@ export class ExpenseForm implements OnInit {
         : this.expenseService.create(payload);
 
     request.pipe(finalize(() => this.saving.set(false))).subscribe({
-      next: () => void this.router.navigate(['/app/expenses']),
-      error: () =>
+      next: () => {
+        this.toast.success(
+          this.expenseId !== null
+            ? 'Gasto actualizado'
+            : 'Gasto registrado',
+          value.description.trim(),
+        );
+        void this.router.navigate(['/app/expenses']);
+      },
+      error: () => {
         this.formError.set(
           'No se pudo guardar el gasto. Revisa los datos e intenta de nuevo.',
-        ),
+        );
+        this.toast.error('No se pudo guardar el gasto');
+      },
     });
   }
 

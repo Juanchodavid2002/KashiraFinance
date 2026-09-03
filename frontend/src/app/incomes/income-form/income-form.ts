@@ -8,6 +8,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { IncomeService } from '../../core/services/income.service';
+import { ToastService } from '../../core/services/toast.service';
 import { todayIsoDate } from '../../core/utils/format';
 
 @Component({
@@ -21,6 +22,7 @@ export class IncomeForm implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly incomeService = inject(IncomeService);
+  private readonly toast = inject(ToastService);
 
   private incomeId: string | null = null;
 
@@ -93,11 +95,19 @@ export class IncomeForm implements OnInit {
         : this.incomeService.create(payload);
 
     request.pipe(finalize(() => this.saving.set(false))).subscribe({
-      next: () => void this.router.navigate(['/app/incomes']),
-      error: () =>
+      next: () => {
+        this.toast.success(
+          this.incomeId !== null ? 'Ingreso actualizado' : 'Ingreso registrado',
+          value.description.trim() || undefined,
+        );
+        void this.router.navigate(['/app/incomes']);
+      },
+      error: () => {
         this.formError.set(
           'No se pudo guardar el ingreso. Revisa los datos e intenta de nuevo.',
-        ),
+        );
+        this.toast.error('No se pudo guardar el ingreso');
+      },
     });
   }
 

@@ -4,6 +4,8 @@ import { finalize } from 'rxjs';
 
 import { ServiceService } from '../../core/services/service.service';
 import { CurrencyService } from '../../core/services/currency.service';
+import { ToastService } from '../../core/services/toast.service';
+import { confirmAction } from '../../core/utils/confirm';
 import { formatAmount } from '../../core/utils/format';
 import type { Service } from '../../core/models/service.models';
 
@@ -16,6 +18,7 @@ export class ServiceList {
   private readonly serviceService = inject(ServiceService);
   private readonly currencyService = inject(CurrencyService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   readonly services = signal<Service[]>([]);
   readonly loading = signal(false);
@@ -60,17 +63,28 @@ export class ServiceList {
     void this.router.navigate(['/app/services', 'new']);
   }
 
-  remove(service: Service): void {
-    if (!confirm(`¿Eliminar el servicio "${service.name}"?`)) {
+  async remove(service: Service): Promise<void> {
+    const confirmed = await confirmAction({
+      title: '¿Eliminar servicio?',
+      text: `¿Eliminar el servicio "${service.name}"?`,
+      confirmText: 'Sí, eliminar',
+      danger: true,
+    });
+
+    if (!confirmed) {
       return;
     }
 
     this.deletingId.set(service.id);
     this.serviceService.remove(service.id).subscribe({
-      next: () => this.load(),
+      next: () => {
+        this.toast.success('Servicio eliminado', service.name);
+        this.load();
+      },
       error: () => {
         this.deletingId.set(null);
         this.error.set('No se pudo eliminar el servicio.');
+        this.toast.error('No se pudo eliminar el servicio');
       },
     });
   }

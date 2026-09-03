@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import { PaymentMethod } from '@prisma/client';
 import {
+  IsBoolean,
   IsDateString,
   IsEnum,
   IsNumber,
@@ -33,4 +34,8 @@ export class CreateDebtPaymentDto {
   @IsOptional()
   @IsEnum(PaymentMethod)
   paymentMethod?: PaymentMethod;
+
+  @IsOptional()
+  @IsBoolean()
+  installment?: boolean;
 }

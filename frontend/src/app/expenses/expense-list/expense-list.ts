@@ -12,6 +12,8 @@ import { finalize } from 'rxjs';
 import { CategoryService } from '../../core/services/category.service';
 import { ExpenseService } from '../../core/services/expense.service';
 import { CurrencyService } from '../../core/services/currency.service';
+import { ToastService } from '../../core/services/toast.service';
+import { confirmAction } from '../../core/utils/confirm';
 import {
   PAYMENT_METHOD_LABELS,
   formatAmount,
@@ -35,6 +37,7 @@ export class ExpenseList implements OnInit {
   private readonly expenseService = inject(ExpenseService);
   private readonly categoryService = inject(CategoryService);
   private readonly currencyService = inject(CurrencyService);
+  private readonly toast = inject(ToastService);
 
   readonly paymentLabels = PAYMENT_METHOD_LABELS;
   readonly formatAmount = (amount: string | number) =>
@@ -106,10 +109,17 @@ export class ExpenseList implements OnInit {
     this.loadExpenses(targetPage);
   }
 
-  deleteExpense(expense: Expense): void {
+  async deleteExpense(expense: Expense): Promise<void> {
     const label = expense.description ?? 'este gasto';
 
-    if (!window.confirm(`¿Eliminar "${label}"? Esta acción no se puede deshacer.`)) {
+    const confirmed = await confirmAction({
+      title: '¿Eliminar gasto?',
+      text: `¿Eliminar "${label}"? Esta acción no se puede deshacer.`,
+      confirmText: 'Sí, eliminar',
+      danger: true,
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -118,8 +128,14 @@ export class ExpenseList implements OnInit {
       .remove(expense.id)
       .pipe(finalize(() => this.deletingId.set(null)))
       .subscribe({
-        next: () => this.loadExpenses(),
-        error: () => this.listError.set('No se pudo eliminar el gasto.'),
+        next: () => {
+          this.toast.success('Gasto eliminado', label);
+          this.loadExpenses();
+        },
+        error: () => {
+          this.listError.set('No se pudo eliminar el gasto.');
+          this.toast.error('No se pudo eliminar el gasto');
+        },
       });
   }
 

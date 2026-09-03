@@ -303,13 +303,42 @@ export class DebtsService {
     await this.getById(userId, debtId);
 
     const payment = await this.prisma.$transaction(async (tx) => {
-      const { total, paid } = await this.getTotalsTx(tx, userId, debtId);
+      const { total, paid, debt } = await this.getPaymentContextTx(
+        tx,
+        userId,
+        debtId,
+      );
       const remaining = total.minus(paid);
-      const amount = new Prisma.Decimal(dto.amount);
+
+      let amount = new Prisma.Decimal(dto.amount);
+
+      if (dto.installment) {
+        const installmentAmount = debt.installmentAmount;
+
+        if (!installmentAmount) {
+          throw new BadRequestException(
+            'Esta deuda no tiene un valor de cuota definido',
+          );
+        }
+
+        const { totalInstallments, paidInstallments } = debt;
+
+        if (
+          totalInstallments !== null &&
+          paidInstallments !== null &&
+          paidInstallments >= totalInstallments
+        ) {
+          throw new BadRequestException(
+            'Ya no quedan cuotas por pagar en esta deuda',
+          );
+        }
+
+        amount = installmentAmount;
+      }
 
       if (amount.greaterThan(remaining)) {
         throw new BadRequestException(
-          `El abono excede el saldo pendiente (${remaining.toString()})`,
+          `El pago excede el saldo pendiente (${remaining.toString()})`,
         );
       }
 
@@ -343,6 +372,13 @@ export class DebtsService {
           debtPaymentId: created.id,
         },
       });
+
+      if (dto.installment && debt.paidInstallments !== null) {
+        await tx.debt.update({
+          where: { id: debtId },
+          data: { paidInstallments: { increment: 1 } },
+        });
+      }
 
       return created;
     });
@@ -382,14 +418,19 @@ export class DebtsService {
     });
   }
 
-  private async getTotalsTx(
+  private async getPaymentContextTx(
     tx: Prisma.TransactionClient,
     userId: string,
     debtId: string,
   ) {
     const debt = await tx.debt.findFirst({
       where: { id: debtId, userId },
-      select: { totalAmount: true },
+      select: {
+        totalAmount: true,
+        installmentAmount: true,
+        totalInstallments: true,
+        paidInstallments: true,
+      },
     });
 
     if (!debt) {
@@ -404,6 +445,7 @@ export class DebtsService {
     return {
       total: debt.totalAmount,
       paid: agg._sum.amount ?? new Prisma.Decimal(0),
+      debt,
     };
   }
 

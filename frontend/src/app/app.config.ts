@@ -7,6 +7,8 @@ import {
   provideRouter,
   withInMemoryScrolling,
 } from '@angular/router';
+import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideToastr } from 'ngx-toastr';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
@@ -22,6 +24,17 @@ export const appConfig: ApplicationConfig = {
         scrollPositionRestoration: 'enabled',
       }),
     ),
+    provideAnimations(),
+    provideToastr({
+      positionClass: 'toast-top-right',
+      timeOut: 3500,
+      extendedTimeOut: 1500,
+      closeButton: true,
+      progressBar: true,
+      newestOnTop: true,
+      preventDuplicates: true,
+      tapToDismiss: false,
+    }),
     provideHttpClient(
       withInterceptors([authInterceptor, errorInterceptor]),
     ),

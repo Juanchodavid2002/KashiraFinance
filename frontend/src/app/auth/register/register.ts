@@ -11,6 +11,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 
 import { AuthService } from '../../core/services/auth.service';
 import { CurrencyService } from '../../core/services/currency.service';
+import { ToastService } from '../../core/services/toast.service';
 import {
   CURRENCY_LABELS,
   SUPPORTED_CURRENCIES,
@@ -43,6 +44,7 @@ export class Register {
   private readonly authService = inject(AuthService);
   private readonly currencyService = inject(CurrencyService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   readonly currencies = SUPPORTED_CURRENCIES;
   readonly currencyLabels = CURRENCY_LABELS;
@@ -134,14 +136,16 @@ export class Register {
 
     this.authService.register({ name, email, password, currency }).subscribe({
       next: () => {
+        this.toast.success('Cuenta creada', `Bienvenido, ${name}.`);
         void this.router.navigate(['/app/dashboard']);
       },
       error: (error: { status: number }) => {
-        this.errorMessage.set(
+        const message =
           error.status === 409
             ? 'Este correo ya está registrado'
-            : 'No se pudo crear la cuenta. Intenta nuevamente.',
-        );
+            : 'No se pudo crear la cuenta. Intenta nuevamente.';
+        this.errorMessage.set(message);
+        this.toast.error('No se pudo crear la cuenta', message);
         this.submitting.set(false);
       },
     });

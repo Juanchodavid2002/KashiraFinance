@@ -120,7 +120,9 @@
                 <span class="sub">{{ payment.notes }}</span>
               }
             </div>
-            <time class="date">{{ formatDate(payment.paidDate) }}</time>
+            <div class="meta">
+              <time class="date">{{ formatDate(payment.paidDate) }}</time>
+            </div>
             <button
               type="button"
               class="icon-btn danger"

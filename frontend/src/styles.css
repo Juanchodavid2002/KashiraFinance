@@ -1,3 +1,5 @@
+@import 'ngx-toastr/toastr';
+
 :root {
   --color-primary: #6366f1;
   --color-primary-dark: #4f46e5;
@@ -128,4 +130,123 @@ body {
 .field input,
 button {
   min-height: 44px;
+}
+
+/* ===================== TOASTS (ngx-toastr) ===================== */
+.toast-container {
+  font-family:
+    'Plus Jakarta Sans',
+    -apple-system,
+    system-ui,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+.toast-container .ngx-toastr {
+  width: 360px;
+  max-width: min(100vw, 360px);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-4);
+  border-left: 4px solid transparent;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.toast-container .ngx-toastr .toast-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.toast-container .ngx-toastr .toast-message {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.toast-container .toast-success {
+  border-left-color: var(--color-success);
+}
+
+.toast-container .toast-success .toast-progress {
+  background: var(--color-success);
+}
+
+.toast-container .toast-error {
+  border-left-color: var(--color-danger);
+}
+
+.toast-container .toast-error .toast-progress {
+  background: var(--color-danger);
+}
+
+.toast-container .toast-info {
+  border-left-color: var(--color-primary);
+}
+
+.toast-container .toast-info .toast-progress {
+  background: var(--color-primary);
+}
+
+.toast-container .toast-warning {
+  border-left-color: var(--color-warning);
+}
+
+.toast-container .toast-warning .toast-progress {
+  background: var(--color-warning);
+}
+
+.toast-container button,
+.toast-container button:hover {
+  box-shadow: none;
+}
+
+/* Ajustes en tablets */
+@media (max-width: 640px) {
+  .toast-container.toast-top-right,
+  .toast-container.toast-top-center,
+  .toast-container.toast-toast-top-full-width {
+    right: 8px;
+    top: 8px;
+    left: 8px;
+    width: auto;
+  }
+
+  .toast-container.toast-bottom-right,
+  .toast-container.toast-bottom-center,
+  .toast-container.toast-toast-bottom-full-width {
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    width: auto;
+  }
+
+  .toast-container .ngx-toastr {
+    width: auto;
+    padding: var(--spacing-3);
+    border-left-width: 4px;
+  }
+}
+
+/* Ajustes en celulares */
+@media (max-width: 480px) {
+  .toast-container .ngx-toastr {
+    font-size: 0.95rem;
+  }
+
+  .toast-container .ngx-toastr .toast-title {
+    font-size: 0.9rem;
+    padding-right: 24px;
+  }
+
+  .toast-container .ngx-toastr .toast-message {
+    font-size: 0.85rem;
+    word-break: break-word;
+  }
+
+  .toast-container button {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }

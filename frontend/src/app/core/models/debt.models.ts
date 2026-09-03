@@ -89,4 +89,5 @@ export interface CreateDebtPaymentPayload {
   notes?: string;
   categoryId?: string;
   paymentMethod?: string;
+  installment?: boolean;
 }

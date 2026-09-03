@@ -8,6 +8,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { ServiceService } from '../../core/services/service.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-service-form',
@@ -20,6 +21,7 @@ export class ServiceForm implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly serviceService = inject(ServiceService);
+  private readonly toast = inject(ToastService);
 
   serviceId: string | null = null;
   isEdit = false;
@@ -82,16 +84,23 @@ export class ServiceForm implements OnInit {
         : this.serviceService.create(payload);
 
     request.pipe(finalize(() => this.saving.set(false))).subscribe({
-      next: (service) =>
+      next: (service) => {
+        this.toast.success(
+          this.serviceId !== null ? 'Servicio actualizado' : 'Servicio creado',
+          service.name,
+        );
         void this.router.navigate(
           this.serviceId !== null
             ? ['/app/services', this.serviceId]
             : ['/app/services'],
-        ),
-      error: () =>
+        );
+      },
+      error: () => {
         this.formError.set(
           'No se pudo guardar el servicio. Revisa los datos e intenta de nuevo.',
-        ),
+        );
+        this.toast.error('No se pudo guardar el servicio');
+      },
     });
   }
 

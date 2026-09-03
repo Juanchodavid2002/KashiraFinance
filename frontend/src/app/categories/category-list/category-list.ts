@@ -7,6 +7,8 @@ import {
 import { finalize } from 'rxjs';
 
 import { CategoryService } from '../../core/services/category.service';
+import { ToastService } from '../../core/services/toast.service';
+import { confirmAction } from '../../core/utils/confirm';
 import type { Category } from '../../core/models/expense.models';
 
 @Component({
@@ -18,6 +20,7 @@ import type { Category } from '../../core/models/expense.models';
 export class CategoryList implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly categoryService = inject(CategoryService);
+  private readonly toast = inject(ToastService);
 
   readonly categories = signal<Category[]>([]);
   readonly loading = signal(true);
@@ -63,21 +66,37 @@ export class CategoryList implements OnInit {
       .subscribe({
         next: () => {
           this.form.reset({ name: '', color: '#2563eb' });
+          this.toast.success('Categoría creada', name.trim());
           this.loadCategories();
         },
-        error: () =>
+        error: () => {
           this.createError.set(
             'No se pudo crear la categoría. Verifica que el nombre no exista.',
-          ),
+          );
+          this.toast.error(
+            'Error al crear categoría',
+            'Verifica que el nombre no exista.',
+          );
+        },
       });
   }
 
-  remove(category: Category): void {
-    const message = category.isDefault
-      ? `¿Ocultar la categoría "${category.name}"? Dejará de mostrarse en tu lista, pero no se eliminará para otros usuarios.`
-      : `¿Eliminar la categoría "${category.name}"? Solo es posible si no tiene gastos asociados.`;
+  async remove(category: Category): Promise<void> {
+    const isDefault = category.isDefault;
+    const message = isDefault
+      ? `Dejará de mostrarse en tu lista, pero no se eliminará para otros usuarios.`
+      : `Solo es posible si no tiene gastos asociados.`;
 
-    if (!window.confirm(message)) {
+    const confirmed = await confirmAction({
+      title: isDefault
+        ? `¿Ocultar "${category.name}"?`
+        : `¿Eliminar "${category.name}"?`,
+      text: message,
+      confirmText: isDefault ? 'Sí, ocultar' : 'Sí, eliminar',
+      danger: true,
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -86,13 +105,26 @@ export class CategoryList implements OnInit {
       .remove(category.id)
       .pipe(finalize(() => this.deletingId.set(null)))
       .subscribe({
-        next: () => this.loadCategories(),
-        error: () =>
+        next: () => {
+          this.toast.success(
+            isDefault ? 'Categoría oculta' : 'Categoría eliminada',
+            category.name,
+          );
+          this.loadCategories();
+        },
+        error: () => {
           this.listError.set(
-            category.isDefault
+            isDefault
               ? 'No se pudo ocultar la categoría. Intenta de nuevo.'
               : 'No se pudo eliminar. Una categoría con gastos asociados no puede borrarse.',
-          ),
+          );
+          this.toast.error(
+            'No se pudo eliminar',
+            isDefault
+              ? 'Intenta de nuevo.'
+              : 'Una categoría con gastos asociados no puede borrarse.',
+          );
+        },
       });
   }
 
