@@ -24,8 +24,9 @@ Crea cuenta y retorna token (login automático).
 | `name` | string | obligatorio, 2–80 chars |
 | `email` | string | obligatorio, formato email, se normaliza a minúsculas |
 | `password` | string | obligatorio, mínimo 8 chars |
+| `currency` | enum? | `COP|USD|MXN|EUR|ARS|CLP`, default `COP` |
 
-**201** → `{ "user": { "id", "name", "email", "createdAt" }, "accessToken": "eyJ..." }`
+**201** → `{ "user": { "id", "name", "email", "currency", "createdAt" }, "accessToken": "eyJ..." }`
 
 **Errores:** 400 validación · 409 email ya registrado.
 
@@ -183,16 +184,126 @@ Notas:
 - `percentage` de categoría sobre el total de gastos del mes (0–100, un decimal).
 - Si no hay movimientos: totales `"0.00"` y arrays vacíos (no error).
 
+La respuesta incluye además:
+
+```json
+"debtSummary": {
+  "totalDebt": "1200000.00",
+  "pendingCount": 3,
+  "paidThisMonth": "350000.00"
+}
+```
+
+`totalDebt`: monto pendiente agregado de deudas; `pendingCount`: número de deudas sin pagar (status `PAID` = restante 0); `paidThisMonth`: abonos pagados a deudas durante el mes del período.
+
 ---
 
-## 6. Utilidades
+## 6. Users (Configuración)
+
+### GET /api/users/me
+**200** → `{ "id", "name", "email", "currency", "createdAt" }`. **Errores:** 401.
+
+### PATCH /api/users/settings
+Actualiza la moneda de visualización del usuario conectado.
+
+| Body | Tipo | Reglas |
+|------|------|--------|
+| `currency` | enum | obligatorio, `COP\|USD\|MXN\|EUR\|ARS\|CLP` |
+
+**200** → `{ "id", "name", "email", "currency" }`. **Errores:** 400 · 401.
+
+---
+
+## 7. Debts
+
+### GET /api/debts
+**200** → `{ "data": [ { "id", "kind", "name", "lender", "totalAmount", "totalInstallments", "paidInstallments", "installmentAmount", "startDate", "dueDate", "notes", "status", "paidAmount", "remainingAmount" } ] }`
+
+### GET /api/debts/:id
+**200** → deuda con `payments[]` (`{ id, amount, paidDate, notes, createdAt }`). **Errores:** 404.
+
+### POST /api/debts
+| Body | Reglas |
+|------|--------|
+| `kind` | `ENTITY\|PERSONAL`, default `ENTITY` |
+| `name` | obligatorio, máx 200 |
+| `lender`? | máx 200 |
+| `totalAmount` | obligatorio, > 0 |
+| `totalInstallments`? / `paidInstallments`? | int >= 1 / >= 0 |
+| `installmentAmount`? | > 0 |
+| `startDate`? | date, default hoy |
+| `dueDate`? | date |
+| `notes`? | máx 1000 |
+
+**201** → deuda creada. **Errores:** 400.
+
+### PATCH /api/debts/:id / DELETE /api/debts/:id
+Campos parciales del POST · **200** / `{ "success": true }`. **Errores:** 400 · 404.
+
+### POST /api/debts/:id/payments
+Registra un abono y crea el `Expense` asociado (categoría "Deudas").
+
+| Body | Reglas |
+|------|--------|
+| `amount` | obligatorio, > 0 |
+| `paidDate`? | date, default hoy |
+| `notes`? | máx 1000 |
+| `categoryId`? | uuid (categoría para el gasto asociado) |
+| `paymentMethod`? | enum, default CASH |
+
+**201** → `{ id, amount, paidDate, notes, createdAt }`. **Errores:** 400 · 404.
+
+### DELETE /api/debts/:id/payments/:paymentId
+Elimina el abono y su gasto asociado. **200** → `{ "success": true }`. **Errores:** 404.
+
+---
+
+## 8. Services
+
+### GET /api/services
+**200** → `{ "data": [ { "id", "name", "color", "icon", "notes", "totalPaid", "paymentCount", "lastPayment" } ] }`
+
+### GET /api/services/:id
+**200** → servicio con `payments[]` (`{ id, amount, paidDate, notes, createdAt }`). **Errores:** 404.
+
+### POST /api/services
+| Body | Reglas |
+|------|--------|
+| `name` | obligatorio, máx 200 |
+| `color`? | hex (random si se omite) |
+| `icon`? / `notes`? | string corto / máx 1000 |
+
+**201** → servicio creado. **Errores:** 400.
+
+### PATCH /api/services/:id / DELETE /api/services/:id
+Campos parciales del POST · **200** / `{ "success": true }`. **Errores:** 400 · 404.
+
+### POST /api/services/:id/payments
+Registra un pago y crea el `Expense` asociado (categoría "Servicios").
+
+| Body | Reglas |
+|------|--------|
+| `amount` | obligatorio, > 0 |
+| `paidDate`? | date, default hoy |
+| `notes`? | máx 1000 |
+| `categoryId`? | uuid (categoría para el gasto asociado) |
+| `paymentMethod`? | enum, default CASH |
+
+**201** → `{ id, amount, paidDate, notes, createdAt }`. **Errores:** 400 · 404.
+
+### DELETE /api/services/:id/payments/:paymentId
+Elimina el pago y su gasto asociado. **200** → `{ "success": true }`. **Errores:** 404.
+
+---
+
+## 9. Utilidades
 
 ### GET /api/health — Público
 **200** → `{ "status": "ok" }`
 
 ---
 
-## 7. Matriz de códigos HTTP
+## 10. Matriz de códigos HTTP
 
 | Código | Uso |
 |--------|-----|
@@ -205,6 +316,6 @@ Notas:
 | 409 | conflicto: duplicado o borrado con dependencias |
 | 500 | error interno (sin stack trace al cliente) |
 
-## 8. Autorización — resumen
+## 11. Autorización — resumen
 
 Todos los endpoints privados filtran por `userId` extraído del JWT. Ninguna query confía en `userId` enviado desde el cliente. Acceder a un recurso de otro usuario responde 404.

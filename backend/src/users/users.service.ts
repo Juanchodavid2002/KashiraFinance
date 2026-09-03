@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { Currency } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 const USER_PUBLIC_SELECT = {
   id: true,
   name: true,
   email: true,
+  currency: true,
   createdAt: true,
 } as const;
 
@@ -23,9 +25,25 @@ export class UsersService {
     });
   }
 
-  create(data: { name: string; email: string; passwordHash: string }) {
+  create(data: {
+    name: string;
+    email: string;
+    passwordHash: string;
+    currency?: Currency;
+  }) {
     return this.prisma.user.create({
-      data,
+      data: {
+        ...data,
+        currency: data.currency ?? Currency.COP,
+      },
+      select: USER_PUBLIC_SELECT,
+    });
+  }
+
+  updateCurrency(id: string, currency: Currency) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { currency },
       select: USER_PUBLIC_SELECT,
     });
   }

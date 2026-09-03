@@ -11,6 +11,7 @@ import { finalize } from 'rxjs';
 
 import { CategoryService } from '../../core/services/category.service';
 import { ExpenseService } from '../../core/services/expense.service';
+import { CurrencyService } from '../../core/services/currency.service';
 import {
   PAYMENT_METHOD_LABELS,
   formatAmount,
@@ -33,9 +34,11 @@ export class ExpenseList implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly expenseService = inject(ExpenseService);
   private readonly categoryService = inject(CategoryService);
+  private readonly currencyService = inject(CurrencyService);
 
   readonly paymentLabels = PAYMENT_METHOD_LABELS;
-  readonly formatAmount = formatAmount;
+  readonly formatAmount = (amount: string | number) =>
+    formatAmount(amount, this.currencyService.currency());
   readonly formatDate = formatDate;
 
   readonly expenses = signal<Expense[]>([]);
@@ -56,7 +59,9 @@ export class ExpenseList implements OnInit {
   readonly totalFormatted = computed(() => {
     const current = this.meta();
 
-    return current ? formatAmount(current.sum) : formatAmount('0');
+    return current
+      ? this.formatAmount(current.sum)
+      : this.formatAmount('0');
   });
 
   readonly page = computed(() => this.meta()?.page ?? 1);

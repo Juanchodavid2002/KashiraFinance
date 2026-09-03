@@ -4,12 +4,15 @@ import { Router } from '@angular/router';
 import { tap } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
+import { CurrencyService } from './currency.service';
 import type {
   AuthResponse,
+  Currency,
   LoginPayload,
   MessageResponse,
   RegisterPayload,
   ResetPasswordPayload,
+  UpdateCurrencyPayload,
   User,
   VerifyResetCodePayload,
 } from '../models/auth.models';
@@ -21,6 +24,7 @@ const USER_KEY = 'kashira_user';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly currencyService = inject(CurrencyService);
 
   private readonly apiUrl = environment.apiUrl;
 
@@ -34,20 +38,47 @@ export class AuthService {
   readonly currentUser = this.currentUserSignal.asReadonly();
   readonly isAuthenticated = computed(() => this.tokenSignal() !== null);
 
+  constructor() {
+    const user = this.readStoredUser();
+
+    if (user?.currency) {
+      this.currencyService.setCurrency(user.currency);
+    }
+  }
+
   register(payload: RegisterPayload) {
     return this.http
       .post<AuthResponse>(`${this.apiUrl}/auth/register`, payload)
-      .pipe(tap((response) => this.storeSession(response)));
+      .pipe(
+        tap((response) => {
+          this.storeSession(response);
+
+          if (response.user.currency) {
+            this.currencyService.setCurrency(response.user.currency);
+          }
+        }),
+      );
   }
 
   login(payload: LoginPayload) {
     return this.http
       .post<AuthResponse>(`${this.apiUrl}/auth/login`, payload)
-      .pipe(tap((response) => this.storeSession(response)));
+      .pipe(
+        tap((response) => {
+          this.storeSession(response);
+
+          if (response.user.currency) {
+            this.currencyService.setCurrency(response.user.currency);
+          }
+        }),
+      );
   }
 
   forgotPassword(email: string) {
-    return this.http.post<MessageResponse>(`${this.apiUrl}/auth/forgot-password`, { email });
+    return this.http.post<MessageResponse>(
+      `${this.apiUrl}/auth/forgot-password`,
+      { email },
+    );
   }
 
   verifyResetCode(payload: VerifyResetCodePayload) {
@@ -58,7 +89,33 @@ export class AuthService {
   }
 
   resetPassword(payload: ResetPasswordPayload) {
-    return this.http.post<MessageResponse>(`${this.apiUrl}/auth/reset-password`, payload);
+    return this.http.post<MessageResponse>(
+      `${this.apiUrl}/auth/reset-password`,
+      payload,
+    );
+  }
+
+  updateCurrency(currency: Currency) {
+    return this.http
+      .patch<{ id: string; currency: Currency }>(
+        `${this.apiUrl}/users/settings`,
+        { currency } satisfies UpdateCurrencyPayload,
+      )
+      .pipe(
+        tap(() => {
+          this.currencyService.setCurrency(currency);
+
+          const user = this.currentUserSignal();
+
+          if (user) {
+            this.currentUserSignal.set({ ...user, currency });
+            localStorage.setItem(
+              USER_KEY,
+              JSON.stringify({ ...user, currency }),
+            );
+          }
+        }),
+      );
   }
 
   logout(): void {

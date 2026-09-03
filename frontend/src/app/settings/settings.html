@@ -1,0 +1,42 @@
+<section class="page-narrow">
+  <h1>Configuración</h1>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="card-title">Moneda</div>
+        <div class="card-subtitle">
+          Elige la moneda con la que verás tus montos en toda la aplicación.
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="currency">Moneda de visualización</label>
+      <select
+        id="currency"
+        [value]="selectedCurrency()"
+        (change)="onCurrencyChange($any($event.target).value)"
+      >
+        @for (c of currencies; track c) {
+          <option [value]="c">{{ currencyLabels[c] }}</option>
+        }
+      </select>
+    </div>
+
+    @if (saving()) {
+      <p class="hint">Guardando…</p>
+    }
+
+    @if (message(); as msg) {
+      <p class="save-msg" [class.success]="msg.type === 'success'" [class.error]="msg.type === 'error'">
+        {{ msg.text }}
+      </p>
+    }
+
+    <p class="note">
+      El cambio de moneda solo afecta cómo se presentan los montos (símbolo y
+      formato). El valor numérico de tus ingresos y gastos no se convierte.
+    </p>
+  </div>
+</section>

@@ -1,0 +1,192 @@
+<section class="page-narrow">
+  <a
+    [routerLink]="isEdit() ? ['/app/debts', debtId] : ['/app/debts']"
+    class="back"
+  >
+    ← Volver a deudas
+  </a>
+
+  <h1>{{ isEdit() ? 'Editar deuda' : 'Nueva deuda' }}</h1>
+
+  @if (loadingDebt()) {
+    <p class="hint">Cargando deuda...</p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="debt-form">
+    @if (formError()) {
+      <p class="form-error">{{ formError() }}</p>
+    }
+
+    <div class="field">
+      <label>Tipo de deuda *</label>
+      <div class="kind-toggle">
+        <button
+          type="button"
+          class="kind-option"
+          [class.active]="form.controls.kind.value === 'ENTITY'"
+          (click)="setKind('ENTITY')"
+        >
+          <span class="kind-icon">🏦</span>
+          <span>Entidad</span>
+        </button>
+        <button
+          type="button"
+          class="kind-option"
+          [class.active]="form.controls.kind.value === 'PERSONAL'"
+          (click)="setKind('PERSONAL')"
+        >
+          <span class="kind-icon">👤</span>
+          <span>Personal</span>
+        </button>
+      </div>
+      @if (form.controls.kind.value === 'PERSONAL') {
+        <span class="field-hint">
+          Deudas con personas (amigos, familiares, vecinos...)
+        </span>
+      } @else {
+        <span class="field-hint">
+          Deudas con bancos o financieras (Progreser, Addi...)
+        </span>
+      }
+    </div>
+
+    <div class="field">
+      <label for="name">Nombre de la deuda *</label>
+      <input
+        id="name"
+        type="text"
+        formControlName="name"
+        placeholder="Ej. Préstamo carro, tarjeta crédito..."
+      />
+      @if (invalid('name')) {
+        <span class="field-error">El nombre es obligatorio (máx. 200).</span>
+      }
+    </div>
+
+    <div class="field">
+      <label for="lender">Acreedor</label>
+      <input
+        id="lender"
+        type="text"
+        formControlName="lender"
+        placeholder="Ej. Banco, persona, entidad (opcional)"
+      />
+      @if (invalid('lender')) {
+        <span class="field-error">Máximo 200 caracteres.</span>
+      }
+    </div>
+
+    <div class="field">
+      <label for="totalAmount">Monto total de la deuda *</label>
+      <input
+        id="totalAmount"
+        type="number"
+        step="0.01"
+        min="0.01"
+        formControlName="totalAmount"
+        placeholder="0"
+      />
+      @if (invalid('totalAmount')) {
+        <span class="field-error">Ingresa un monto mayor a 0.</span>
+      }
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="totalInstallments">Cuotas totales</label>
+        <input
+          id="totalInstallments"
+          type="number"
+          min="1"
+          step="1"
+          formControlName="totalInstallments"
+          placeholder="Ej. 36"
+        />
+        @if (invalid('totalInstallments')) {
+          <span class="field-error">Debe ser un número mayor a 1.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="paidInstallments">Cuotas pagadas</label>
+        <input
+          id="paidInstallments"
+          type="number"
+          min="0"
+          step="1"
+          formControlName="paidInstallments"
+          placeholder="Ej. 8"
+        />
+        @if (invalid('paidInstallments')) {
+          <span class="field-error">Debe ser un número mayor o igual a 0.</span>
+        }
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="installmentAmount">Valor de cada cuota</label>
+      <input
+        id="installmentAmount"
+        type="number"
+        step="0.01"
+        min="0.01"
+        formControlName="installmentAmount"
+        placeholder="Ej. 482269"
+      />
+      @if (invalid('installmentAmount')) {
+        <span class="field-error">Ingresa un valor mayor a 0.</span>
+      }
+    </div>
+
+    @if (isEntity()) {
+      <div class="row">
+        <div class="field">
+          <label for="startDate">Fecha de inicio</label>
+          <input id="startDate" type="date" formControlName="startDate" />
+        </div>
+
+        <div class="field">
+          <label for="dueDate">Fecha límite (auto)</label>
+          <input
+            id="dueDate"
+            type="date"
+            formControlName="dueDate"
+            readonly
+          />
+          <span class="field-hint">
+            Se calcula según las cuotas: inicio + cuotas restantes = vencimiento mensual.
+          </span>
+        </div>
+      </div>
+    } @else {
+      <div class="row">
+        <div class="field">
+          <label for="startDate">Fecha de inicio</label>
+          <input id="startDate" type="date" formControlName="startDate" />
+        </div>
+
+        <div class="field">
+          <label for="dueDate">Fecha final (límite)</label>
+          <input id="dueDate" type="date" formControlName="dueDate" />
+          @if (invalid('dueDate')) {
+            <span class="field-error">Fecha no válida.</span>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="field">
+      <label for="notes">Notas</label>
+      <textarea
+        id="notes"
+        rows="3"
+        formControlName="notes"
+        placeholder="Detalles adicionales (opcional)"
+      ></textarea>
+    </div>
+
+    <button type="submit" class="btn-primary" [disabled]="saving()">
+      {{ saving() ? 'Guardando...' : isEdit() ? 'Guardar cambios' : 'Registrar deuda' }}
+    </button>
+  </form>
+</section>

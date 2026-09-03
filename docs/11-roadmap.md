@@ -83,6 +83,15 @@ Construcción incremental. Cada fase se verifica antes de avanzar (errores, prue
 - [ ] Recuperación de contraseña
 - [ ] Refresh tokens (si la expiración de 7d resulta incómoda)
 
+## FASE 9 — Deudas, Servicios y Moneda ✅ (en curso)
+
+- [x] `Currency` enum + `User.currency` (default COP); selector en registro y módulo de Configuración
+- [x] Formato de montos reactivo según moneda (frontend `currency.service` + `formatAmount`)
+- [x] Módulo Deudas (CRUD + pagos que generan gasto asociado + tarjeta de resumen en dashboard)
+- [x] Módulo Servicios (CRUD + historial de pagos mensuales que generan gasto asociado)
+- [x] Migración `add_currency_and_services` aplicada
+- [ ] Actualización de documentación de despliegue si aplica
+
 ---
 
 ## Orden de construcción interno (Fase 2 → 6)

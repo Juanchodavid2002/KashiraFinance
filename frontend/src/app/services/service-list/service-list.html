@@ -1,0 +1,55 @@
+<section class="page-narrow">
+  <div class="head">
+    <div>
+      <h1>Servicios</h1>
+      <p class="head-sub">Gestiona tus suscripciones y servicios mensuales.</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="openNew()">
+      Nuevo servicio
+    </button>
+  </div>
+
+  @if (error()) {
+    <p class="form-error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="hint">Cargando servicios…</p>
+  }
+
+  @if (!loading() && services().length === 0) {
+    <p class="hint">
+      Aún no tienes servicios registrados. Crea tu primer servicio como
+      Internet, Luz, Agua o Datos móviles.
+    </p>
+  }
+
+  <ul class="service-items">
+    @for (service of services(); track service.id) {
+      <li class="service-item" (click)="goDetail(service)">
+        <span class="dot" [style.background]="service.color ?? 'var(--color-primary)'"></span>
+        <div class="info">
+          <div class="name">{{ service.name }}</div>
+          <div class="meta">
+            {{ service.paymentCount }}
+            {{ service.paymentCount === 1 ? 'pago' : 'pagos' }}
+            @if (service.lastPayment) {
+              · último {{ formatDate(service.lastPayment.paidDate) }}
+            } @else {
+              · sin pagos
+            }
+          </div>
+        </div>
+        <div class="paid">{{ format(service.totalPaid) }}</div>
+        <button
+          type="button"
+          class="icon-btn danger"
+          (click)="$event.stopPropagation(); remove(service)"
+          [disabled]="deletingId() === service.id"
+        >
+          {{ deletingId() === service.id ? '…' : 'Eliminar' }}
+        </button>
+      </li>
+    }
+  </ul>
+</section>

@@ -90,6 +90,61 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./incomes/income-form/income-form').then((m) => m.IncomeForm),
       },
+      {
+        path: 'debts',
+        loadComponent: () =>
+          import('./debts/debt-list/debt-list').then((m) => m.DebtList),
+      },
+      {
+        path: 'debts/nuevo',
+        loadComponent: () =>
+          import('./debts/debt-form/debt-form').then((m) => m.DebtForm),
+      },
+      {
+        path: 'debts/:id',
+        loadComponent: () =>
+          import('./debts/debt-detail/debt-detail').then(
+            (m) => m.DebtDetailComponent,
+          ),
+      },
+      {
+        path: 'debts/:id/editar',
+        loadComponent: () =>
+          import('./debts/debt-form/debt-form').then((m) => m.DebtForm),
+      },
+      {
+        path: 'services',
+        loadComponent: () =>
+          import('./services/service-list/service-list').then(
+            (m) => m.ServiceList,
+          ),
+      },
+      {
+        path: 'services/new',
+        loadComponent: () =>
+          import('./services/service-form/service-form').then(
+            (m) => m.ServiceForm,
+          ),
+      },
+      {
+        path: 'services/:id',
+        loadComponent: () =>
+          import('./services/service-detail/service-detail').then(
+            (m) => m.ServiceDetailComponent,
+          ),
+      },
+      {
+        path: 'services/:id/editar',
+        loadComponent: () =>
+          import('./services/service-form/service-form').then(
+            (m) => m.ServiceForm,
+          ),
+      },
+      {
+        path: 'configuracion',
+        loadComponent: () =>
+          import('./settings/settings').then((m) => m.Settings),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

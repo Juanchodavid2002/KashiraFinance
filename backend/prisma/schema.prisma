@@ -15,17 +15,34 @@ enum PaymentMethod {
   OTHER
 }
 
+enum DebtKind {
+  ENTITY
+  PERSONAL
+}
+
+enum Currency {
+  COP
+  USD
+  MXN
+  EUR
+  ARS
+  CLP
+}
+
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
   name         String
   passwordHash String
+  currency     Currency @default(COP)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   expenses            Expense[]
   incomes             Income[]
   categories          Category[]
+  debts               Debt[]
+  services            Service[]
   passwordResetCodes  PasswordResetCode[]
   hiddenCategories    UserHiddenCategory[]
 
@@ -83,14 +100,17 @@ model Expense {
   amount        Decimal       @db.Decimal(14, 2)
   expenseDate   DateTime      @db.Date
   paymentMethod PaymentMethod @default(CASH)
-  notes         String?
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category      Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime @updatedAt
+  notes           String?
+  debtPaymentId   String?  @db.Uuid
+  servicePaymentId String? @db.Uuid  @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category        Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@index([userId, expenseDate(sort: Desc)])
   @@index([userId, categoryId])
+  @@index([debtPaymentId])
   @@map("expenses")
 }
 
@@ -108,4 +128,72 @@ model Income {
 
   @@index([userId, incomeDate(sort: Desc)])
   @@map("incomes")
+}
+
+model Debt {
+  id                String   @id @default(uuid())
+  userId            String
+  kind              DebtKind
+  name              String
+  lender            String?
+  totalAmount       Decimal  @db.Decimal(14, 2)
+  totalInstallments Int?
+  paidInstallments  Int?
+  installmentAmount Decimal? @db.Decimal(14, 2)
+  startDate         DateTime @db.Date
+  dueDate           DateTime? @db.Date
+  notes             String?
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments          DebtPayment[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("debts")
+}
+
+model DebtPayment {
+  id        String   @id @default(uuid())
+  debtId    String
+  userId    String
+  amount    Decimal  @db.Decimal(14, 2)
+  paidDate  DateTime @db.Date
+  notes     String?
+  debt      Debt     @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([debtId, paidDate(sort: Desc)])
+  @@map("debt_payments")
+}
+
+model Service {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  color     String?
+  icon      String?
+  notes     String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments  ServicePayment[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("services")
+}
+
+model ServicePayment {
+  id        String   @id @default(uuid())
+  serviceId String
+  userId    String
+  amount    Decimal  @db.Decimal(14, 2)
+  paidDate  DateTime @db.Date
+  notes     String?
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([serviceId, paidDate(sort: Desc)])
+  @@map("service_payments")
 }

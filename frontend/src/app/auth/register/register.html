@@ -375,6 +375,25 @@
             }
           </div>
 
+          <!-- Moneda -->
+          <div class="field" [class.error]="form.controls.currency.invalid && form.controls.currency.touched">
+            <label for="currency">Moneda</label>
+            <div class="input-wrap">
+              <svg class="ic-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+              </svg>
+              <select id="currency" formControlName="currency">
+                @for (c of currencies; track c) {
+                <option [value]="c">{{ currencyLabels[c] }}</option>
+                }
+              </select>
+            </div>
+            <span class="field-hint">Esta ser&aacute; la moneda con la que ver&aacute;s tus montos. Podr&aacute;s cambiarla despu&eacute;s en Configuraci&oacute;n.</span>
+          </div>
+
           <!-- Términos -->
           <div class="field terms-field" [class.error]="form.controls.terms.invalid && form.controls.terms.touched">
             <label class="checkbox terms-row">

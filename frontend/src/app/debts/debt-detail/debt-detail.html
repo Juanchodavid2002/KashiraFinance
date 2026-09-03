@@ -1,0 +1,229 @@
+<section class="page">
+  @if (loading() && !debt()) {
+    <p class="hint">Cargando deuda...</p>
+  }
+
+  @if (loadError()) {
+    <p class="form-error">{{ loadError() }}</p>
+  }
+
+  @if (debt(); as debt) {
+    <a routerLink="/app/debts" class="back">← Volver a deudas</a>
+
+    <header class="detail-header">
+      <div>
+        <h1>
+          {{ debt.name }}
+          <span class="kind-badge" [class.personal]="debt.kind === 'PERSONAL'">
+            {{ debt.kind === 'ENTITY' ? '🏦 Entidad' : '👤 Personal' }}
+          </span>
+        </h1>
+        @if (debt.lender) {
+          <p class="sub">Acreedor: {{ debt.lender }}</p>
+        }
+        @if (debt.dueDate) {
+          <p class="sub">Fecha límite: {{ formatDate(debt.dueDate) }}</p>
+        }
+      </div>
+      <a
+        [routerLink]="['/app/debts', debt.id, 'editar']"
+        class="btn-secondary btn-edit"
+      >
+        Editar deuda
+      </a>
+    </header>
+
+    @if (debt.notes) {
+      <p class="notes">{{ debt.notes }}</p>
+    }
+
+    <div class="summary">
+      <div class="summary-card">
+        <span class="label">Total</span>
+        <strong>{{ formatAmount(debt.totalAmount) }}</strong>
+      </div>
+      <div class="summary-card">
+        <span class="label">Pagado</span>
+        <strong class="positive">{{ formatAmount(debt.paidAmount) }}</strong>
+      </div>
+      <div class="summary-card">
+        <span class="label">Restante</span>
+        <strong [class.danger]="debt.status === 'PENDING'">
+          {{ formatAmount(debt.remainingAmount) }}
+        </strong>
+      </div>
+      <div class="summary-card">
+        <span class="label">Estado</span>
+        <strong [class.paid-badge]="debt.status === 'PAID'">
+          {{ debt.status === 'PAID' ? 'Pagada' : 'Pendiente' }}
+        </strong>
+      </div>
+    </div>
+
+    @if (
+      debt.totalInstallments !== null ||
+      debt.installmentAmount !== null
+    ) {
+      <div class="installments">
+        <div class="installment-item">
+          <span class="label">Cuotas totales</span>
+          <strong>{{ debt.totalInstallments ?? '—' }}</strong>
+        </div>
+        <div class="installment-item">
+          <span class="label">Cuotas pagadas</span>
+          <strong>{{ debt.paidInstallments ?? '—' }}</strong>
+        </div>
+        <div class="installment-item">
+          <span class="label">Cuotas restantes</span>
+          <strong>
+            {{
+              debt.totalInstallments !== null &&
+              debt.paidInstallments !== null
+                ? debt.totalInstallments - debt.paidInstallments
+                : '—'
+            }}
+          </strong>
+        </div>
+        <div class="installment-item">
+          <span class="label">Valor por cuota</span>
+          <strong>
+            {{
+              debt.installmentAmount
+                ? formatAmount(debt.installmentAmount)
+                : '—'
+            }}
+          </strong>
+        </div>
+      </div>
+    }
+
+    <div class="progress-wrap">
+      <div class="progress">
+        <div
+          class="progress-fill"
+          [class.full]="debt.status === 'PAID'"
+          [style.width.%]="progressPercent()"
+        ></div>
+      </div>
+      <span class="progress-label">
+        {{ progressPercent() }}% pagado
+      </span>
+    </div>
+
+    @if (debt.status === 'PENDING') {
+      <form
+        [formGroup]="paymentForm"
+        (ngSubmit)="addPayment()"
+        class="payment-form"
+      >
+        <h2>Registrar abono</h2>
+        <p class="form-hint">
+          Al registrar el abono también se creará un gasto asociado que verás en
+          Gastos y en el Dashboard.
+        </p>
+
+        @if (formError()) {
+          <p class="form-error">{{ formError() }}</p>
+        }
+
+        <div class="row">
+          <div class="field">
+            <label for="amount">Monto del abono *</label>
+            <input
+              id="amount"
+              type="number"
+              step="0.01"
+              min="0.01"
+              formControlName="amount"
+              placeholder="0"
+            />
+            @if (
+              paymentForm.controls.amount.invalid &&
+              (paymentForm.controls.amount.touched ||
+                paymentForm.controls.amount.dirty)
+            ) {
+              <span class="field-error">Ingresa un monto mayor a 0.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label for="paidDate">Fecha del abono</label>
+            <input
+              id="paidDate"
+              type="date"
+              formControlName="paidDate"
+            />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="paymentNotes">Notas (opcional)</label>
+          <input
+            id="paymentNotes"
+            type="text"
+            formControlName="notes"
+            placeholder="Ej. Cuota #3"
+          />
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="paymentCategory">Categoría *</label>
+            <select
+              id="paymentCategory"
+              formControlName="categoryId"
+            >
+              @for (category of categories(); track category.id) {
+                <option [value]="category.id">{{ category.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="paymentMethod">Método de pago</label>
+            <select id="paymentMethod" formControlName="paymentMethod">
+              @for (method of paymentMethods; track method[0]) {
+                <option [value]="method[0]">{{ method[1] }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" [disabled]="saving()">
+          {{ saving() ? 'Guardando...' : 'Registrar abono' }}
+        </button>
+      </form>
+    } @else {
+      <div class="paid-banner">🎉 Deuda totalmente pagada</div>
+    }
+
+    <h2 class="payments-title">Historial de abonos</h2>
+
+    @if (debt.payments.length === 0) {
+      <p class="hint">Aún no has registrado abonos.</p>
+    } @else {
+      <ul class="payment-items">
+        @for (payment of debt.payments; track payment.id) {
+          <li class="payment-item">
+            <span class="payment-badge">✓</span>
+            <div class="info">
+              <strong>{{ formatAmount(payment.amount) }}</strong>
+              @if (payment.notes) {
+                <span class="sub">{{ payment.notes }}</span>
+              }
+            </div>
+            <time class="date">{{ formatDate(payment.paidDate) }}</time>
+            <button
+              type="button"
+              class="icon-btn danger"
+              (click)="deletePayment(payment)"
+              [disabled]="deletingPaymentId() === payment.id"
+            >
+              {{ deletingPaymentId() === payment.id ? '...' : 'Eliminar' }}
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  }
+</section>

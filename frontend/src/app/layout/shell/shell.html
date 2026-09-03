@@ -40,6 +40,22 @@
           <span>Ingresos</span>
         </a>
         <a
+          routerLink="/app/debts"
+          routerLinkActive="active"
+          class="nav-link"
+        >
+          <span class="icon">🧾</span>
+          <span>Deudas</span>
+        </a>
+        <a
+          routerLink="/app/services"
+          routerLinkActive="active"
+          class="nav-link"
+        >
+          <span class="icon">🧮</span>
+          <span>Servicios</span>
+        </a>
+        <a
           routerLink="/app/categorias"
           routerLinkActive="active"
           class="nav-link"
@@ -60,6 +76,14 @@
           </div>
         </div>
       }
+      <a
+        routerLink="/app/configuracion"
+        routerLinkActive="active"
+        class="nav-link config-link"
+      >
+        <span class="icon">⚙️</span>
+        <span>Configuración</span>
+      </a>
       <button type="button" class="logout-btn" (click)="logout()">
         <span class="logout-icon">🚪</span>
         <span>Cerrar sesión</span>

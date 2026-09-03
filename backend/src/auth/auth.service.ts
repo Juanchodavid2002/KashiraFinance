@@ -19,6 +19,7 @@ export interface AuthResult {
     id: string;
     name: string;
     email: string;
+    currency: string;
     createdAt: Date;
   };
   accessToken: string;
@@ -45,6 +46,7 @@ export class AuthService {
       name: dto.name.trim(),
       email,
       passwordHash,
+      currency: dto.currency,
     });
 
     return this.buildAuthResult(user);
@@ -71,6 +73,7 @@ export class AuthService {
       id: user.id,
       name: user.name,
       email: user.email,
+      currency: user.currency,
       createdAt: user.createdAt,
     });
   }

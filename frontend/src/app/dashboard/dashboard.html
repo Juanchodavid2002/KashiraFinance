@@ -108,6 +108,31 @@
           <span>Este mes</span>
         </div>
       </div>
+
+      <a
+        routerLink="/app/debts"
+        class="stat-card debt-card"
+        [class.hidden]="debtCardHidden()"
+      >
+        <div class="stat-head">
+          <span class="stat-label">Deudas pendientes</span>
+          <div class="stat-icon debt">🧾</div>
+        </div>
+        <div class="stat-value">
+          {{ formatAmount(d.debtSummary.totalDebt) }}
+        </div>
+        <div class="debt-meta">
+          <span class="debt-pill">{{ d.debtSummary.pendingCount }}</span>
+          <span class="debt-pill-label">
+            {{ d.debtSummary.pendingCount === 1 ? 'deuda activa' : 'deudas activas' }}
+          </span>
+          <span class="debt-divider"></span>
+          <span class="debt-paid-label">Pagado este mes</span>
+          <span class="debt-paid-value">
+            {{ formatAmount(d.debtSummary.paidThisMonth) }}
+          </span>
+        </div>
+      </a>
     </div>
 
     <!-- Quick Actions -->

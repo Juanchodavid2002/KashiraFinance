@@ -1,0 +1,245 @@
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: var(--spacing-5) var(--spacing-4);
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-5);
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.btn-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--spacing-4);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+}
+
+.search-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--spacing-3);
+  background: var(--color-surface);
+  padding: var(--spacing-4);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--spacing-4);
+}
+
+.search-bar .grow {
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-bar button {
+  height: 44px;
+  padding: 0 var(--spacing-4);
+}
+
+.btn-secondary {
+  height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-muted);
+  cursor: pointer;
+}
+
+.totals {
+  margin: 0 0 var(--spacing-3);
+  color: var(--color-muted);
+  font-size: 0.95rem;
+}
+
+.danger {
+  color: var(--color-danger);
+}
+
+.hint {
+  color: var(--color-muted);
+}
+
+.empty {
+  text-align: center;
+  padding: var(--spacing-6) var(--spacing-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  color: var(--color-muted);
+}
+
+.empty a {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.debt-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.debt-item {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr auto auto;
+  gap: var(--spacing-4);
+  align-items: center;
+  background: var(--color-surface);
+  padding: var(--spacing-4);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.description {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.description a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.description a:hover {
+  color: var(--color-primary);
+}
+
+.kind-dot {
+  margin-left: var(--spacing-1);
+  font-size: 0.9rem;
+}
+
+.sub {
+  font-size: 0.82rem;
+  color: var(--color-muted);
+}
+
+.progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.progress {
+  height: 8px;
+  width: 100%;
+  background: var(--color-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.progress-fill.full {
+  background: var(--color-success);
+}
+
+.progress-label {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+.amounts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 120px;
+}
+
+.amount-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  font-size: 0.82rem;
+  color: var(--color-muted);
+}
+
+.amount-row strong {
+  font-size: 0.9rem;
+}
+
+.remaining {
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-2);
+  justify-content: flex-end;
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: none;
+  padding: var(--spacing-1) var(--spacing-2);
+  min-height: auto;
+}
+
+.icon-btn.danger {
+  color: var(--color-danger);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-5);
+  color: var(--color-muted);
+}
+
+.pagination button {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-2) var(--spacing-3);
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 760px) {
+  .debt-item {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+}

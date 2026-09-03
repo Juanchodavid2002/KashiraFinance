@@ -196,6 +196,69 @@
   color: var(--color-warning);
 }
 
+.stat-icon.debt {
+  background: #fce7f3;
+  color: #db2777;
+}
+
+.debt-card {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+}
+
+.debt-card.hidden {
+  display: none;
+}
+
+.debt-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.debt-pill {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #ffe4e6;
+  color: #e11d48;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.debt-pill-label {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.debt-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--color-border);
+  margin: 0 2px;
+}
+
+.debt-paid-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--color-muted);
+}
+
+.debt-paid-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-success);
+}
+
 .stat-card.primary .stat-icon {
   background: rgb(255 255 255 / 0.2);
   color: white;

@@ -1,0 +1,54 @@
+<section class="page-narrow">
+  <a class="back-link" [routerLink]="serviceId ? ['/app/services', serviceId] : ['/app/services']">
+    ← Volver a servicios
+  </a>
+
+  <h1>{{ isEdit ? 'Editar servicio' : 'Nuevo servicio' }}</h1>
+
+  @if (loadingService()) {
+    <p class="hint">Cargando servicio…</p>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()" class="card">
+      <div class="field">
+        <label for="name">Nombre</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="Ej. Internet, Luz, Agua, Datos móviles"
+        />
+        @if (invalid('name')) {
+          <span class="field-error">El nombre es obligatorio (máx. 200 caracteres).</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="color">Color (opcional)</label>
+        <input id="color" type="color" formControlName="color" class="color-input" />
+      </div>
+
+      <div class="field">
+        <label for="notes">Notas (opcional)</label>
+        <textarea
+          id="notes"
+          formControlName="notes"
+          rows="3"
+          placeholder="Ej. Cuenta contratada #123456"
+        ></textarea>
+      </div>
+
+      @if (formError()) {
+        <p class="form-error">{{ formError() }}</p>
+      }
+
+      <div class="actions">
+        <button type="button" class="btn-ghost" [routerLink]="serviceId ? ['/app/services', serviceId] : ['/app/services']">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear servicio' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

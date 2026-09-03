@@ -10,6 +10,12 @@ import { Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 import { AuthService } from '../../core/services/auth.service';
+import { CurrencyService } from '../../core/services/currency.service';
+import {
+  CURRENCY_LABELS,
+  SUPPORTED_CURRENCIES,
+  type Currency,
+} from '../../core/models/auth.models';
 
 type MatchState = 'hidden' | 'match' | 'no-match';
 
@@ -35,7 +41,11 @@ const STRENGTH_LABELS: Record<number, StrengthLabel> = {
 export class Register {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly currencyService = inject(CurrencyService);
   private readonly router = inject(Router);
+
+  readonly currencies = SUPPORTED_CURRENCIES;
+  readonly currencyLabels = CURRENCY_LABELS;
 
   readonly submitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
@@ -56,6 +66,7 @@ export class Register {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]],
+      currency: [this.detectCurrency(), [Validators.required]],
       terms: [false, [Validators.requiredTrue]],
     },
     { validators: (group) => this.passwordsMatch(group) },
@@ -116,12 +127,12 @@ export class Register {
       return;
     }
 
-    const { name, email, password } = this.form.getRawValue();
+    const { name, email, password, currency } = this.form.getRawValue();
 
     this.submitting.set(true);
     this.errorMessage.set(null);
 
-    this.authService.register({ name, email, password }).subscribe({
+    this.authService.register({ name, email, password, currency }).subscribe({
       next: () => {
         void this.router.navigate(['/app/dashboard']);
       },
@@ -134,6 +145,10 @@ export class Register {
         this.submitting.set(false);
       },
     });
+  }
+
+  private detectCurrency(): Currency {
+    return this.currencyService.currency();
   }
 
   private passwordsMatch(group: AbstractControl): ValidationErrors | null {

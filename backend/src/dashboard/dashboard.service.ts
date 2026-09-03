@@ -76,6 +76,8 @@ export class DashboardService {
       incomeByMonthRows,
       expenseByMonthRows,
       previousExpenseSum,
+      debtPaymentThisMonth,
+      pendingDebts,
     ] = await Promise.all([
       this.prisma.income.aggregate({
         where: {
@@ -136,6 +138,11 @@ export class DashboardService {
         },
         _sum: { amount: true },
       }),
+      this.prisma.debtPayment.aggregate({
+        where: { userId, paidDate: { gte: rangeStart, lt: rangeEnd } },
+        _sum: { amount: true },
+      }),
+      this.debtPendingSummary(userId),
     ]);
 
     const totalIncome = new Prisma.Decimal(incomeSum._sum.amount ?? 0);
@@ -168,10 +175,7 @@ export class DashboardService {
         ...expense,
         amount: toAmount(expense.amount),
       })),
-      recentActivity: this.buildRecentActivity(
-        recentExpenses,
-        recentIncomes,
-      ),
+      recentActivity: this.buildRecentActivity(recentExpenses, recentIncomes),
       monthlyEvolution: this.buildEvolution(
         period.year,
         period.month,
@@ -182,6 +186,38 @@ export class DashboardService {
         previousMonthExpense: toAmount(previousMonthExpense),
         variationPercentage,
       },
+      debtSummary: {
+        totalDebt: pendingDebts.totalDebt,
+        pendingCount: pendingDebts.pendingCount,
+        paidThisMonth: toAmount(debtPaymentThisMonth._sum.amount ?? null),
+      },
+    };
+  }
+
+  private async debtPendingSummary(
+    userId: string,
+  ): Promise<{ totalDebt: string; pendingCount: number }> {
+    const rows = await this.prisma.$queryRaw<
+      { total_debt: Prisma.Decimal | null; pending_count: bigint }[]
+    >`
+      SELECT
+        SUM(d."totalAmount" - COALESCE(p."paid", 0)) AS "total_debt",
+        COUNT(*) FILTER (WHERE d."totalAmount" > COALESCE(p."paid", 0)) AS "pending_count"
+      FROM "debts" d
+      LEFT JOIN (
+        SELECT "debtId", SUM(amount) AS "paid"
+        FROM "debt_payments"
+        WHERE "userId" = ${userId}
+        GROUP BY "debtId"
+      ) p ON p."debtId" = d.id
+      WHERE d."userId" = ${userId}
+    `;
+
+    const row = rows[0];
+
+    return {
+      totalDebt: toAmount(row?.total_debt ?? null),
+      pendingCount: row ? Number(row.pending_count) : 0,
     };
   }
 
@@ -318,10 +354,7 @@ export class DashboardService {
     }));
 
     return [...expenseItems, ...incomeItems]
-      .sort(
-        (a, b) =>
-          new Date(b.date).getTime() - new Date(a.date).getTime(),
-      )
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, RECENT_ACTIVITY_LIMIT);
   }
 }

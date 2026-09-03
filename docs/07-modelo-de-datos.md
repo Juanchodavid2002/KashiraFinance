@@ -18,6 +18,7 @@ erDiagram
         varchar email UK "único, lowercase"
         varchar name "1-80 chars"
         varchar password_hash "bcrypt"
+        enum currency "COP por defecto; COP|USD|MXN|EUR|ARS|CLP"
         timestamptz created_at
         timestamptz updated_at
     }
@@ -213,3 +214,104 @@ model Income {
 ## 7. Futuras entidades (NO implementar en MVP)
 
 Documentadas para referencia de evolución: `Account` (cuentas/billeteras), `Budget`, `Organization` + `Membership` + `Role` (etapas 2–3). La estructura actual no impide agregarlas.
+
+---
+
+## 8. Etapa 2+ — Deudas, Servicios y Moneda
+
+Añadidas tras el MVP inicial (migración `add_currency_and_services`).
+
+### 8.1 Moneda de usuario (`User.currency`)
+
+- Enum `Currency`: `COP | USD | MXN | EUR | ARS | CLP`.
+- `User.currency` con `@default(COP)`. Se elige al registrarse y se edita desde Configuración (`PATCH /api/users/settings`).
+- La moneda solo afecta el **formato de presentación** (símbolo y miles/decimas). El valor numérico de ingresos/gastos **no se convierte** entre divisas.
+
+### 8.2 Deudas (`Debt` y `DebtPayment`)
+
+```prisma
+model Debt {
+  id                 String   @id @default(uuid())
+  userId             String
+  kind               DebtKind @default(ENTITY) // ENTITY | PERSONAL
+  name               String
+  lender             String?
+  totalAmount        Decimal  @db.Decimal(14, 2)
+  totalInstallments  Int?
+  paidInstallments   Int?
+  installmentAmount  Decimal? @db.Decimal(14, 2)
+  startDate          DateTime @db.Date
+  dueDate            DateTime? @db.Date
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  payments           DebtPayment[]
+  user               User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("debts")
+}
+
+model DebtPayment {
+  id        String         @id @default(uuid())
+  debtId    String
+  userId    String
+  amount    Decimal        @db.Decimal(14, 2)
+  paidDate  DateTime       @db.Date
+  notes     String?
+  createdAt DateTime       @default(now())
+  debt      Debt           @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("debt_payments")
+}
+```
+
+- Cada abono de deuda crea un `Expense` asociado, enlazado por `Expense.debtPaymentId` (columna UUID con índice, sin relación FK, para evitar mismatch de tipo con otras tablas).
+
+### 8.3 Servicios (`Service` y `ServicePayment`)
+
+```prisma
+enum ServiceState { ACTIVE INACTIVE } // reservado
+
+model Service {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  color     String?
+  icon      String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  payments  ServicePayment[]
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("services")
+}
+
+model ServicePayment {
+  id        String     @id @default(uuid())
+  serviceId String
+  userId    String
+  amount    Decimal    @db.Decimal(14, 2)
+  paidDate  DateTime   @db.Date
+  notes     String?
+  createdAt DateTime   @default(now())
+  service   Service    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("service_payments")
+}
+```
+
+- Cada pago de servicio crea un `Expense` asociado, enlazado por `Expense.servicePaymentId` (`@unique`, 1:1, sin relación FK).
+- Si no se indica categoría, el backend resuelve (o crea) la categoría "Servicios" del usuario.
+- `ServicePayment` no tiene FK a `service_payments` (espejo del patrón de deudas) para evitar mismatch de tipo (UUID vs TEXT).
+
+### 8.4 Ajustes a `Expense`
+
+- Añadidas columnas `debt_payment_id` y `service_payment_id` (UUID, indexadas). Mantienen el vínculo opcional con los pagos de deuda/servicio que originan el gasto.
+

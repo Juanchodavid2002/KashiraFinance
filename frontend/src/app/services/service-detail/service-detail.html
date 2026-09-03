@@ -1,0 +1,137 @@
+<section class="page">
+  @if (loading() && !service()) {
+    <p class="hint">Cargando servicio…</p>
+  }
+
+  @if (loadError()) {
+    <p class="form-error">{{ loadError() }}</p>
+  }
+
+  @if (service(); as service) {
+    <a routerLink="/app/services" class="back">← Volver a servicios</a>
+
+    <header class="detail-header">
+      <div>
+        <h1>
+          <span class="title-dot" [style.background]="service.color ?? 'var(--color-primary)'"></span>
+          {{ service.name }}
+        </h1>
+        @if (service.notes) {
+          <p class="sub">{{ service.notes }}</p>
+        }
+      </div>
+      <a
+        [routerLink]="['/app/services', service.id, 'editar']"
+        class="btn-secondary btn-edit"
+      >
+        Editar servicio
+      </a>
+    </header>
+
+    <div class="summary">
+      <div class="summary-card">
+        <span class="label">Total pagado</span>
+        <strong>{{ formatAmount(service.totalPaid) }}</strong>
+      </div>
+      <div class="summary-card">
+        <span class="label">Pagos registrados</span>
+        <strong>{{ service.paymentCount }}</strong>
+      </div>
+      <div class="summary-card">
+        <span class="label">Último pago</span>
+        <strong>
+          {{
+            service.lastPayment
+              ? formatDate(service.lastPayment.paidDate)
+              : 'Nunca'
+          }}
+        </strong>
+      </div>
+    </div>
+
+    <form
+      [formGroup]="paymentForm"
+      (ngSubmit)="addPayment()"
+      class="payment-form"
+    >
+      <h2>Registrar pago mensual</h2>
+      <p class="form-hint">
+        Al registrar el pago también se creará un gasto asociado que verás en
+        Gastos y en el Dashboard.
+      </p>
+
+      @if (formError()) {
+        <p class="form-error">{{ formError() }}</p>
+      }
+
+      <div class="row">
+        <div class="field">
+          <label for="amount">Monto del pago *</label>
+          <input
+            id="amount"
+            type="number"
+            step="0.01"
+            min="0.01"
+            formControlName="amount"
+            placeholder="0"
+          />
+          @if (
+            paymentForm.controls.amount.invalid &&
+            (paymentForm.controls.amount.touched ||
+              paymentForm.controls.amount.dirty)
+          ) {
+            <span class="field-error">Ingresa un monto mayor a 0.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="paidDate">Fecha del pago</label>
+          <input id="paidDate" type="date" formControlName="paidDate" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="paymentNotes">Notas (opcional)</label>
+        <input
+          id="paymentNotes"
+          type="text"
+          formControlName="notes"
+          placeholder="Ej. Pago de agosto"
+        />
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="saving()">
+        {{ saving() ? 'Guardando…' : 'Registrar pago' }}
+      </button>
+    </form>
+
+    <h2 class="payments-title">Historial de pagos</h2>
+
+    @if (service.payments.length === 0) {
+      <p class="hint">Aún no has registrado pagos para este servicio.</p>
+    } @else {
+      <ul class="payment-items">
+        @for (payment of service.payments; track payment.id) {
+          <li class="payment-item">
+            <span class="payment-badge">✓</span>
+            <div class="info">
+              <strong>{{ formatAmount(payment.amount) }}</strong>
+              @if (payment.notes) {
+                <span class="sub">{{ payment.notes }}</span>
+              }
+            </div>
+            <time class="date">{{ formatDate(payment.paidDate) }}</time>
+            <button
+              type="button"
+              class="icon-btn danger"
+              (click)="deletePayment(payment)"
+              [disabled]="deletingPaymentId() === payment.id"
+            >
+              {{ deletingPaymentId() === payment.id ? '…' : 'Eliminar' }}
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  }
+</section>

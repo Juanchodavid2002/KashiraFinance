@@ -1,10 +1,32 @@
 import type { PaymentMethod } from '../models/expense.models';
+import type { Currency } from '../models/auth.models';
 
-const currencyFormatter = new Intl.NumberFormat('es-CO', {
-  style: 'currency',
-  currency: 'COP',
-  maximumFractionDigits: 0,
-});
+const CURRENCY_MAP: Record<Currency, { locale: string; code: string }> = {
+  COP: { locale: 'es-CO', code: 'COP' },
+  USD: { locale: 'en-US', code: 'USD' },
+  MXN: { locale: 'es-MX', code: 'MXN' },
+  EUR: { locale: 'de-DE', code: 'EUR' },
+  ARS: { locale: 'es-AR', code: 'ARS' },
+  CLP: { locale: 'es-CL', code: 'CLP' },
+};
+
+const formatterCache = new Map<string, Intl.NumberFormat>();
+
+function getFormatter(currency: Currency): Intl.NumberFormat {
+  const info = CURRENCY_MAP[currency];
+  let fmt = formatterCache.get(info.code);
+
+  if (!fmt) {
+    fmt = new Intl.NumberFormat(info.locale, {
+      style: 'currency',
+      currency: info.code,
+      maximumFractionDigits: currency === 'CLP' || currency === 'COP' ? 0 : 2,
+    });
+    formatterCache.set(info.code, fmt);
+  }
+
+  return fmt;
+}
 
 const dateFormatter = new Intl.DateTimeFormat('es-CO', {
   day: 'numeric',
@@ -20,8 +42,11 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   OTHER: 'Otro',
 };
 
-export function formatAmount(amount: string | number): string {
-  return currencyFormatter.format(Number(amount));
+export function formatAmount(
+  amount: string | number,
+  currency: Currency = 'COP',
+): string {
+  return getFormatter(currency).format(Number(amount));
 }
 
 export function formatDate(isoDate: string): string {

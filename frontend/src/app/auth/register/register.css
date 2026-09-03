@@ -596,6 +596,37 @@
 
 .has-toggle input { padding-right: 46px; }
 
+.input-wrap select {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  border: 1.5px solid var(--line);
+  border-radius: 11px;
+  background: #fff;
+  color: var(--navy);
+  font-size: 13.5px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.input-wrap select:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+
+.field-hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
 .ic-right {
   position: absolute;
   right: 6px;

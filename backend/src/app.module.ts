@@ -5,10 +5,12 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { CategoriesModule } from './categories/categories.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { DebtsModule } from './debts/debts.module';
 import { ExpensesModule } from './expenses/expenses.module';
 import { HealthModule } from './health/health.module';
 import { IncomesModule } from './incomes/incomes.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ServicesModule } from './services/services.module';
 import { UsersModule } from './users/users.module';
 
 function validateEnv(config: Record<string, unknown>): Record<string, unknown> {
@@ -38,6 +40,8 @@ function validateEnv(config: Record<string, unknown>): Record<string, unknown> {
     CategoriesModule,
     ExpensesModule,
     IncomesModule,
+    DebtsModule,
+    ServicesModule,
     DashboardModule,
   ],
   providers: [

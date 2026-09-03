@@ -5,6 +5,7 @@ import { finalize } from 'rxjs';
 
 import { DashboardService } from '../core/services/dashboard.service';
 import { AuthService } from '../core/services/auth.service';
+import { CurrencyService } from '../core/services/currency.service';
 import { formatAmount, formatDate } from '../core/utils/format';
 import type {
   DashboardPeriod,
@@ -78,9 +79,11 @@ interface HealthRow {
 })
 export class Dashboard implements OnInit {
   private readonly dashboardService = inject(DashboardService);
+  private readonly currencyService = inject(CurrencyService);
   readonly authService = inject(AuthService);
 
-  readonly formatAmount = formatAmount;
+  readonly formatAmount = (amount: string | number) =>
+    formatAmount(amount, this.currencyService.currency());
   readonly formatDate = formatDate;
 
   readonly period = signal<DashboardPeriod>(this.currentPeriod());
@@ -128,6 +131,18 @@ export class Dashboard implements OnInit {
 
   readonly availableNegative = computed(
     () => Number(this.data()?.available ?? '0') < 0,
+  );
+
+  readonly totalDebt = computed(() => this.data()?.debtSummary.totalDebt ?? '0');
+  readonly pendingDebtsCount = computed(
+    () => this.data()?.debtSummary.pendingCount ?? 0,
+  );
+  readonly paidThisMonth = computed(
+    () => this.data()?.debtSummary.paidThisMonth ?? '0',
+  );
+  readonly debtCardHidden = computed(
+    () =>
+      Number(this.totalDebt()) <= 0 && this.pendingDebtsCount() <= 0,
   );
 
   readonly availablePercent = computed(() => {
@@ -223,7 +238,7 @@ export class Dashboard implements OnInit {
             cornerRadius: 8,
             callbacks: {
               label: (context) =>
-                `${context.label}: ${formatAmount(String(context.parsed))}`,
+                `${context.label}: ${this.formatAmount(String(context.parsed))}`,
             },
           },
         },
@@ -310,7 +325,7 @@ export class Dashboard implements OnInit {
             cornerRadius: 8,
             callbacks: {
               label: (context) =>
-                ` ${context.dataset.label}: ${formatAmount(String(context.parsed.y))}`,
+                ` ${context.dataset.label}: ${this.formatAmount(String(context.parsed.y))}`,
             },
           },
         },
@@ -361,7 +376,7 @@ export class Dashboard implements OnInit {
       {
         key: 'income',
         label: 'Ingresos',
-        value: formatAmount(summary.totalIncome),
+        value: this.formatAmount(summary.totalIncome),
         percent: income > 0 ? 100 : 0,
         fillClass: 'income',
         color: 'var(--color-success)',
@@ -370,7 +385,7 @@ export class Dashboard implements OnInit {
       {
         key: 'expense',
         label: 'Gastos',
-        value: formatAmount(summary.totalExpense),
+        value: this.formatAmount(summary.totalExpense),
         percent: expensePercent,
         fillClass: 'expense',
         color: 'var(--color-danger)',
@@ -382,7 +397,7 @@ export class Dashboard implements OnInit {
       {
         key: 'available',
         label: 'Disponible',
-        value: formatAmount(summary.available),
+        value: this.formatAmount(summary.available),
         percent: availablePercent,
         fillClass: 'available',
         color: 'var(--color-primary)',

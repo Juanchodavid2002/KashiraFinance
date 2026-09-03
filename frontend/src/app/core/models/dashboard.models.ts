@@ -47,6 +47,12 @@ export interface DashboardComparison {
   variationPercentage: number | null;
 }
 
+export interface DebtSummary {
+  totalDebt: string;
+  pendingCount: number;
+  paidThisMonth: string;
+}
+
 export interface DashboardSummary {
   period: DashboardPeriod;
   totalIncome: string;
@@ -58,6 +64,7 @@ export interface DashboardSummary {
   recentActivity: RecentActivity[];
   monthlyEvolution: MonthlyEvolutionPoint[];
   comparison: DashboardComparison;
+  debtSummary: DebtSummary;
 }
 
 export interface DashboardFilters {

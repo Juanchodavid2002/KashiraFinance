@@ -1,0 +1,146 @@
+<section class="page">
+  <header class="page-header">
+    <h1>Deudas</h1>
+    <a routerLink="/app/debts/nuevo" class="btn-primary btn-link">+ Nueva deuda</a>
+  </header>
+
+  <form [formGroup]="searchForm" (ngSubmit)="searchDebts()" class="search-bar">
+    <div class="field grow">
+      <label for="search">Buscar</label>
+      <input
+        id="search"
+        type="search"
+        formControlName="search"
+        placeholder="Buscar por nombre o acreedor..."
+      />
+    </div>
+
+    <button type="submit" class="btn-primary" [disabled]="loading()">
+      Buscar
+    </button>
+    <button type="button" class="btn-secondary" (click)="clearSearch()">
+      Limpiar
+    </button>
+  </form>
+
+  @if (listError()) {
+    <p class="form-error">{{ listError() }}</p>
+  }
+
+  @if (meta(); as meta) {
+    <p class="totals">
+      {{ meta.total }} deuda(s) · {{ meta.pendingCount }} pendiente(s) ·
+      Saldo total: <strong class="danger">{{ totalsFormatted() }}</strong>
+    </p>
+  }
+
+  @if (loading()) {
+    <p class="hint">Cargando deudas...</p>
+  } @else if (debts().length === 0) {
+    <div class="empty">
+      <p>No hay deudas que coincidan con la búsqueda.</p>
+      <a routerLink="/app/debts/nuevo">Registra tu primera deuda</a>
+    </div>
+  } @else {
+    <ul class="debt-items">
+      @for (debt of debts(); track debt.id) {
+        <li class="debt-item">
+          <div class="info">
+            <span class="description">
+              <a [routerLink]="['/app/debts', debt.id]">{{ debt.name }}</a>
+              <span class="kind-dot" [class.personal]="debt.kind === 'PERSONAL'">
+                {{ debt.kind === 'ENTITY' ? '🏦' : '👤' }}
+              </span>
+            </span>
+            @if (debt.lender) {
+              <span class="sub">Acreedor: {{ debt.lender }}</span>
+            }
+            @if (debt.totalInstallments !== null) {
+              <span class="sub">
+                Cuotas: {{ debt.paidInstallments ?? 0 }}/{{ debt.totalInstallments }}
+              </span>
+            }
+            @if (debt.dueDate) {
+              <span class="sub">Vence: {{ formatDate(debt.dueDate) }}</span>
+            }
+          </div>
+
+          <div class="progress-wrap">
+            <div class="progress">
+              <div
+                class="progress-fill"
+                [class.full]="debt.status === 'PAID'"
+                [style.width.%]="progressPercent(debt)"
+              ></div>
+            </div>
+            <span class="progress-label">
+              {{ formatAmount(debt.paidAmount) }} de
+              {{ formatAmount(debt.totalAmount) }}
+            </span>
+          </div>
+
+          <div class="amounts">
+            <div class="amount-row">
+              <span>Total</span>
+              <strong>{{ formatAmount(debt.totalAmount) }}</strong>
+            </div>
+            <div class="amount-row">
+              <span>Restante</span>
+              <strong
+                class="remaining"
+                [class.danger]="debt.status === 'PENDING'"
+              >
+                {{ formatAmount(debt.remainingAmount) }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="actions">
+            <a
+              [routerLink]="['/app/debts', debt.id]"
+              class="icon-btn"
+              aria-label="Ver y pagar"
+            >
+              Pagar
+            </a>
+            <a
+              [routerLink]="['/app/debts', debt.id, 'editar']"
+              class="icon-btn"
+              aria-label="Editar"
+            >
+              Editar
+            </a>
+            <button
+              type="button"
+              class="icon-btn danger"
+              (click)="deleteDebt(debt)"
+              [disabled]="deletingId() === debt.id"
+            >
+              {{ deletingId() === debt.id ? '...' : 'Eliminar' }}
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+
+    @if (totalPages() > 1) {
+      <nav class="pagination">
+        <button
+          type="button"
+          (click)="goToPage(page() - 1)"
+          [disabled]="page() <= 1"
+        >
+          ← Anterior
+        </button>
+        <span>Página {{ page() }} de {{ totalPages() }}</span>
+        <button
+          type="button"
+          (click)="goToPage(page() + 1)"
+          [disabled]="page() >= totalPages()"
+        >
+          Siguiente →
+        </button>
+      </nav>
+    }
+  }
+</section>

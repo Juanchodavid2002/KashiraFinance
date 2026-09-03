@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { IncomeService } from '../../core/services/income.service';
+import { CurrencyService } from '../../core/services/currency.service';
 import { formatAmount, formatDate } from '../../core/utils/format';
 import type { Income, IncomeListMeta } from '../../core/models/income.models';
 
@@ -16,8 +17,10 @@ import type { Income, IncomeListMeta } from '../../core/models/income.models';
 export class IncomeList implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly incomeService = inject(IncomeService);
+  private readonly currencyService = inject(CurrencyService);
 
-  readonly formatAmount = formatAmount;
+  readonly formatAmount = (amount: string | number) =>
+    formatAmount(amount, this.currencyService.currency());
   readonly formatDate = formatDate;
 
   readonly incomes = signal<Income[]>([]);
@@ -35,7 +38,7 @@ export class IncomeList implements OnInit {
   readonly totalFormatted = computed(() => {
     const current = this.meta();
 
-    return current ? formatAmount(current.sum) : formatAmount('0');
+    return current ? this.formatAmount(current.sum) : this.formatAmount('0');
   });
 
   readonly page = computed(() => this.meta()?.page ?? 1);
