@@ -19,6 +19,12 @@ export class CreateDebtPaymentDto {
   amount!: number;
 
   @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  capitalAmount?: number;
+
+  @IsOptional()
   @IsDateString({ strict: true })
   paidDate?: string;
 

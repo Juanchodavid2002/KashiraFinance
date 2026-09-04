@@ -79,6 +79,7 @@ export class DashboardService {
       debtPaymentThisMonth,
       pendingDebts,
       envelopeBalanceSum,
+      savingsBalanceSum,
     ] = await Promise.all([
       this.prisma.income.aggregate({
         where: {
@@ -148,6 +149,10 @@ export class DashboardService {
         where: { userId },
         _sum: { balance: true },
       }),
+      this.prisma.savingsGoal.aggregate({
+        where: { userId, status: { not: 'CLOSED' } },
+        _sum: { balance: true },
+      }),
     ]);
 
     const totalIncome = new Prisma.Decimal(incomeSum._sum.amount ?? 0);
@@ -157,7 +162,14 @@ export class DashboardService {
       envelopeBalanceSum._sum.balance ?? 0,
     );
 
-    const available = totalIncome.minus(totalExpense).minus(envelopeBalance);
+    const savingsBalance = new Prisma.Decimal(
+      savingsBalanceSum._sum.balance ?? 0,
+    );
+
+    const available = totalIncome
+      .minus(totalExpense)
+      .minus(envelopeBalance)
+      .minus(savingsBalance);
     const previousMonthExpense = new Prisma.Decimal(
       previousExpenseSum._sum.amount ?? 0,
     );
@@ -201,6 +213,7 @@ export class DashboardService {
         pendingCount: pendingDebts.pendingCount,
         paidThisMonth: toAmount(debtPaymentThisMonth._sum.amount ?? null),
       },
+      savingsBalance: toAmount(savingsBalance),
     };
   }
 
@@ -215,10 +228,12 @@ export class DashboardService {
         COUNT(*) FILTER (WHERE d."totalAmount" > COALESCE(p."paid", 0)) AS "pending_count"
       FROM "debts" d
       LEFT JOIN (
-        SELECT "debtId", SUM(amount) AS "paid"
-        FROM "debt_payments"
-        WHERE "userId" = ${userId}
-        GROUP BY "debtId"
+        SELECT "debtId",
+               SUM(CASE WHEN d2."interestType" = 'WITH_INTEREST' THEN COALESCE(dp."capitalAmount", dp."amount") ELSE dp."amount" END) AS "paid"
+        FROM "debt_payments" dp
+        JOIN "debts" d2 ON d2."id" = dp."debtId"
+        WHERE dp."userId" = ${userId}
+        GROUP BY dp."debtId"
       ) p ON p."debtId" = d.id
       WHERE d."userId" = ${userId}
     `;

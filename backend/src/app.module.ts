@@ -11,6 +11,7 @@ import { ExpensesModule } from './expenses/expenses.module';
 import { HealthModule } from './health/health.module';
 import { IncomesModule } from './incomes/incomes.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { SavingsModule } from './savings/savings.module';
 import { ServicesModule } from './services/services.module';
 import { UsersModule } from './users/users.module';
 
@@ -44,6 +45,7 @@ function validateEnv(config: Record<string, unknown>): Record<string, unknown> {
     DebtsModule,
     EnvelopesModule,
     ServicesModule,
+    SavingsModule,
     DashboardModule,
   ],
   providers: [

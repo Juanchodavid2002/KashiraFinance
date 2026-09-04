@@ -13,6 +13,7 @@ import { UpdateDebtDto } from './dto/update-debt.dto';
 const DEBT_PAYMENTS_SELECT = {
   id: true,
   amount: true,
+  capitalAmount: true,
   paidDate: true,
   notes: true,
   createdAt: true,
@@ -61,6 +62,7 @@ function debtWithBalance(debt: {
   id: string;
   userId: string;
   kind: DebtKind;
+  interestType: string;
   name: string;
   lender: string | null;
   totalAmount: Prisma.Decimal;
@@ -72,11 +74,12 @@ function debtWithBalance(debt: {
   notes: string | null;
   createdAt: Date;
   updatedAt: Date;
-  _sum: { amount: Prisma.Decimal | null };
+  _sum: { amount: Prisma.Decimal | null; capitalAmount: Prisma.Decimal | null };
 }): {
   id: string;
   userId: string;
   kind: DebtKind;
+  interestType: string;
   name: string;
   lender: string | null;
   totalAmount: string;
@@ -93,19 +96,23 @@ function debtWithBalance(debt: {
   updatedAt: Date;
 } {
   const total = debt.totalAmount;
-  const paid = debt._sum.amount ?? new Prisma.Decimal(0);
+  const isInterestBearing = debt.interestType === 'WITH_INTEREST';
+  const paid = isInterestBearing
+    ? (debt._sum.capitalAmount ?? new Prisma.Decimal(0))
+    : (debt._sum.amount ?? new Prisma.Decimal(0));
   const remaining = total.minus(paid);
 
   return {
     id: debt.id,
     userId: debt.userId,
     kind: debt.kind,
+    interestType: debt.interestType,
     name: debt.name,
     lender: debt.lender,
     totalAmount: total.toString(),
     paidAmount: paid.toString(),
     remainingAmount: remaining.toString(),
-    status: remaining.isZero() ? 'PAID' : 'PENDING',
+    status: remaining.isZero() || remaining.isNegative() ? 'PAID' : 'PENDING',
     totalInstallments: debt.totalInstallments,
     paidInstallments: debt.paidInstallments,
     installmentAmount: debt.installmentAmount?.toString() ?? null,
@@ -140,7 +147,7 @@ export class DebtsService {
       data.map(async (debt) => {
         const agg = await this.prisma.debtPayment.aggregate({
           where: { debtId: debt.id },
-          _sum: { amount: true },
+          _sum: { amount: true, capitalAmount: true },
         });
         return debtWithBalance({ ...debt, _sum: agg._sum });
       }),
@@ -163,7 +170,7 @@ export class DebtsService {
       this.prisma.debt.findFirst({ where: { id, userId } }),
       this.prisma.debtPayment.aggregate({
         where: { debtId: id, userId },
-        _sum: { amount: true },
+        _sum: { amount: true, capitalAmount: true },
       }),
       this.prisma.debtPayment.findMany({
         where: { debtId: id, userId },
@@ -196,6 +203,7 @@ export class DebtsService {
       data: {
         userId,
         kind: dto.kind,
+        interestType: dto.interestType ?? 'NONE',
         name: dto.name,
         lender: dto.lender,
         totalAmount: new Prisma.Decimal(dto.totalAmount),
@@ -250,6 +258,7 @@ export class DebtsService {
       where: { id },
       data: {
         kind: dto.kind,
+        interestType: dto.interestType,
         name: dto.name,
         lender: dto.lender,
         totalAmount: newTotal,
@@ -309,6 +318,7 @@ export class DebtsService {
         debtId,
       );
       const remaining = total.minus(paid);
+      const isInterestBearing = debt.interestType === 'WITH_INTEREST';
 
       let amount = new Prisma.Decimal(dto.amount);
 
@@ -336,7 +346,31 @@ export class DebtsService {
         amount = installmentAmount;
       }
 
-      if (amount.greaterThan(remaining)) {
+      let capitalAmount: Prisma.Decimal | null = null;
+
+      if (isInterestBearing) {
+        if (dto.capitalAmount === undefined || dto.capitalAmount === null) {
+          throw new BadRequestException(
+            'Para deudas con interés, el monto a capital es requerido',
+          );
+        }
+
+        capitalAmount = new Prisma.Decimal(dto.capitalAmount);
+
+        if (capitalAmount.greaterThan(amount)) {
+          throw new BadRequestException(
+            'El monto a capital no puede ser mayor al monto del pago',
+          );
+        }
+
+        if (capitalAmount.greaterThan(remaining)) {
+          throw new BadRequestException(
+            `El monto a capital excede el saldo pendiente (${remaining.toString()})`,
+          );
+        }
+      }
+
+      if (!isInterestBearing && amount.greaterThan(remaining)) {
         throw new BadRequestException(
           `El pago excede el saldo pendiente (${remaining.toString()})`,
         );
@@ -349,11 +383,14 @@ export class DebtsService {
       );
       const paidDate = toDateOnly(dto.paidDate ?? this.today());
 
+      const paymentAmount = isInterestBearing ? capitalAmount! : amount;
+
       const created = await tx.debtPayment.create({
         data: {
           debtId,
           userId,
-          amount,
+          amount: paymentAmount,
+          capitalAmount: isInterestBearing ? capitalAmount : null,
           paidDate,
           notes: dto.notes,
         },
@@ -426,6 +463,7 @@ export class DebtsService {
     const debt = await tx.debt.findFirst({
       where: { id: debtId, userId },
       select: {
+        interestType: true,
         totalAmount: true,
         installmentAmount: true,
         totalInstallments: true,
@@ -437,14 +475,22 @@ export class DebtsService {
       throw new NotFoundException('Deuda no encontrada');
     }
 
+    const isInterestBearing = debt.interestType === 'WITH_INTEREST';
+
     const agg = await tx.debtPayment.aggregate({
       where: { debtId, userId },
-      _sum: { amount: true },
+      _sum: isInterestBearing
+        ? { capitalAmount: true }
+        : { amount: true },
     });
+
+    const paidSum = isInterestBearing
+      ? (agg._sum as { capitalAmount: Prisma.Decimal | null }).capitalAmount ?? new Prisma.Decimal(0)
+      : (agg._sum as { amount: Prisma.Decimal | null }).amount ?? new Prisma.Decimal(0);
 
     return {
       total: debt.totalAmount,
-      paid: agg._sum.amount ?? new Prisma.Decimal(0),
+      paid: paidSum,
       debt,
     };
   }

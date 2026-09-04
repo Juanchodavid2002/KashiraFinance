@@ -15,6 +15,11 @@ export class UpdateDebtDto {
   @IsOptional()
   @IsEnum(DebtKind)
   kind?: DebtKind;
+
+  @IsOptional()
+  @IsString()
+  interestType?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(200)

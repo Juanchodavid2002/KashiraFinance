@@ -2,10 +2,13 @@ export type DebtStatus = 'PENDING' | 'PAID';
 
 export type DebtKind = 'ENTITY' | 'PERSONAL';
 
+export type InterestType = 'NONE' | 'WITH_INTEREST';
+
 export interface Debt {
   id: string;
   userId: string;
   kind: DebtKind;
+  interestType: InterestType;
   name: string;
   lender: string | null;
   totalAmount: string;
@@ -29,6 +32,7 @@ export interface DebtListItem extends Debt {
 export interface DebtPayment {
   id: string;
   amount: string;
+  capitalAmount: string | null;
   paidDate: string;
   notes: string | null;
   createdAt: string;
@@ -59,6 +63,7 @@ export interface DebtFilters {
 
 export interface CreateDebtPayload {
   kind: DebtKind;
+  interestType?: InterestType;
   name: string;
   lender?: string;
   totalAmount: number;
@@ -72,6 +77,7 @@ export interface CreateDebtPayload {
 
 export interface UpdateDebtPayload {
   kind?: DebtKind;
+  interestType?: InterestType;
   name?: string;
   lender?: string;
   totalAmount?: number;
@@ -85,6 +91,7 @@ export interface UpdateDebtPayload {
 
 export interface CreateDebtPaymentPayload {
   amount: number;
+  capitalAmount?: number;
   paidDate?: string;
   notes?: string;
   categoryId?: string;

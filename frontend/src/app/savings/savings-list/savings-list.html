@@ -1,0 +1,126 @@
+<section class="page-narrow">
+  <div class="head">
+    <div>
+      <h1>Ahorros</h1>
+      <p class="head-sub">Guarda dinero para metas específicas.</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="openNew()">
+      Nuevo ahorro
+    </button>
+  </div>
+
+  @if (error()) {
+    <p class="form-error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="hint">Cargando ahorros…</p>
+  }
+
+  @if (!loading() && savings().length === 0) {
+    <p class="hint">
+      Aún no tienes ahorros. Crea uno para guardar dinero, por ejemplo para
+      una moto, vacaciones o fondo de emergencia.
+    </p>
+  }
+
+  @if (savings().length > 0 && !loading()) {
+    <div class="totals-strip">
+      <span>
+        {{ savingCountLabel() }}
+      </span>
+    </div>
+  }
+
+  <ul class="savings-items">
+    @for (goal of savings(); track goal.id) {
+      <li class="savings-item">
+        <div class="savings-main">
+          <div class="savings-icon">🎯</div>
+          <div class="info">
+            <div class="name-row">
+              <span class="name">{{ goal.name }}</span>
+              @if (goal.status === 'REACHED') {
+                <span class="status-badge reached">Meta lograda</span>
+              }
+            </div>
+            <div class="meta">
+              Meta {{ format(goal.targetAmount) }}
+              @if (goal.deadline) {
+                · Vence {{ formatDate(goal.deadline) }}
+              }
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="balance"
+          [class.empty]="isEmpty(goal)"
+          [class.low]="balanceState(goal) === 'low'"
+        >
+          <span class="balance-label">Ahorrado</span>
+          <span class="balance-value">{{ format(goal.balance) }}</span>
+        </div>
+
+        <div class="actions">
+          <button
+            type="button"
+            class="btn-ghost"
+            (click)="goDetail(goal)"
+          >
+            Abrir
+          </button>
+          <button type="button" class="icon-btn" (click)="goEdit(goal)">
+            Editar
+          </button>
+          <button
+            type="button"
+            class="icon-btn danger"
+            (click)="remove(goal)"
+            [disabled]="deletingId() === goal.id"
+          >
+            {{ deletingId() === goal.id ? '…' : 'Eliminar' }}
+          </button>
+        </div>
+
+        <div
+          class="progress-wrap"
+          [class.empty]="isEmpty(goal)"
+          [class.low]="balanceState(goal) === 'low'"
+        >
+          <div class="progress">
+            <div
+              class="progress-fill"
+              [class.full]="goal.status === 'REACHED'"
+              [style.width.%]="goal.progressPercent"
+            ></div>
+          </div>
+          <span class="progress-label">
+            {{ goal.progressPercent }}% · Ahorrado {{ format(goal.balance) }}
+            · Faltan {{ format(goal.remainingAmount) }}
+          </span>
+        </div>
+      </li>
+    }
+  </ul>
+
+  @if (totalPages() > 1) {
+    <nav class="pagination">
+      <button
+        type="button"
+        (click)="goToPage(page() - 1)"
+        [disabled]="page() <= 1"
+      >
+        ← Anterior
+      </button>
+      <span>Página {{ page() }} de {{ totalPages() }}</span>
+      <button
+        type="button"
+        (click)="goToPage(page() + 1)"
+        [disabled]="page() >= totalPages()"
+      >
+        Siguiente →
+      </button>
+    </nav>
+  }
+</section>

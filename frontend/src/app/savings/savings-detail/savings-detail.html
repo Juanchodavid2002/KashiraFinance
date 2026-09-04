@@ -1,0 +1,283 @@
+<section class="page">
+  @if (loading() && !goal()) {
+    <p class="hint">Cargando ahorro...</p>
+  }
+
+  @if (loadError()) {
+    <p class="form-error">{{ loadError() }}</p>
+  }
+
+  @if (goal(); as goal) {
+    <a routerLink="/app/savings" class="back">← Volver a ahorros</a>
+
+    <header class="detail-header">
+      <div>
+        <h1>
+          🎯 {{ goal.name }}
+          @if (goal.status === 'REACHED') {
+            <span class="status-badge reached">Meta lograda</span>
+          }
+        </h1>
+        @if (goal.deadline) {
+          <p class="sub">Fecha límite: {{ formatDate(goal.deadline) }}</p>
+        }
+      </div>
+      <a
+        [routerLink]="['/app/savings', goal.id, 'edit']"
+        class="btn-secondary btn-edit"
+      >
+        Editar ahorro
+      </a>
+    </header>
+
+    @if (goal.notes) {
+      <p class="notes">{{ goal.notes }}</p>
+    }
+
+    <div class="summary">
+      <div class="summary-card">
+        <span class="label">Ahorrado</span>
+        <strong class="positive">{{ formatAmount(goal.balance) }}</strong>
+      </div>
+      <div class="summary-card">
+        <span class="label">Meta</span>
+        <strong>{{ formatAmount(goal.targetAmount) }}</strong>
+      </div>
+      <div class="summary-card">
+        <span class="label">Falta</span>
+        <strong [class.danger]="goal.status !== 'REACHED'">
+          {{ formatAmount(goal.remainingAmount) }}
+        </strong>
+      </div>
+      <div class="summary-card">
+        <span class="label">Estado</span>
+        <strong [class.paid-badge]="goal.status === 'REACHED'">
+          {{ goal.status === 'REACHED' ? 'Lograda' : 'En proceso' }}
+        </strong>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress">
+        <div
+          class="progress-fill"
+          [class.full]="goal.status === 'REACHED'"
+          [style.width.%]="goal.progressPercent"
+        ></div>
+      </div>
+      <span class="progress-label">
+        {{ goal.progressPercent }}% de la meta
+      </span>
+    </div>
+
+    <section class="actions-section">
+      <div class="section-head">
+        <h2>Registrar movimiento</h2>
+        <p class="form-hint">
+          Abona dinero a este ahorro o retira parte de lo ahorrado.
+        </p>
+      </div>
+
+      @if (mode() === 'none') {
+        <div class="action-buttons">
+          <button
+            type="button"
+            class="action-card action-card--abonar"
+            (click)="selectMode('abonar')"
+            [disabled]="saving()"
+          >
+            <span class="action-icon">💰</span>
+            <span class="action-info">
+              <strong>Abonar</strong>
+              <span>Agrega dinero al ahorro</span>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="action-card action-card--retirar"
+            (click)="selectMode('retirar')"
+            [disabled]="saving()"
+          >
+            <span class="action-icon">🏧</span>
+            <span class="action-info">
+              <strong>Retirar</strong>
+              <span>Saca dinero del ahorro</span>
+            </span>
+          </button>
+        </div>
+      }
+
+      @if (mode() === 'abonar') {
+        <form
+          [formGroup]="abonarForm"
+          (ngSubmit)="submitAbonar()"
+          class="payment-form"
+        >
+          <div class="form-title-row">
+            <h3>Abonar al ahorro</h3>
+            <button
+              type="button"
+              class="link-btn"
+              (click)="closeMode()"
+              [disabled]="saving()"
+            >
+              Cancelar
+            </button>
+          </div>
+
+          @if (formError()) {
+            <p class="form-error">{{ formError() }}</p>
+          }
+
+          <div class="field">
+            <label for="abonarAmount">Monto a abonar *</label>
+            <input
+              id="abonarAmount"
+              type="number"
+              step="0.01"
+              min="0.01"
+              formControlName="amount"
+              placeholder="Ej. 200000"
+            />
+            @if (
+              abonarForm.controls.amount.invalid &&
+              (abonarForm.controls.amount.touched ||
+                abonarForm.controls.amount.dirty)
+            ) {
+              <span class="field-error">Ingresa un monto mayor a 0.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label for="abonarNotes">Notas (opcional)</label>
+            <input
+              id="abonarNotes"
+              type="text"
+              formControlName="notes"
+              placeholder="Ej. Cuota del mes"
+            />
+          </div>
+
+          <button type="submit" class="btn-primary" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Registrar abono' }}
+          </button>
+        </form>
+      }
+
+      @if (mode() === 'retirar') {
+        <form
+          [formGroup]="retirarForm"
+          (ngSubmit)="submitRetirar()"
+          class="payment-form"
+        >
+          <div class="form-title-row">
+            <h3>Retirar del ahorro</h3>
+            <button
+              type="button"
+              class="link-btn"
+              (click)="closeMode()"
+              [disabled]="saving()"
+            >
+              Cancelar
+            </button>
+          </div>
+
+          @if (formError()) {
+            <p class="form-error">{{ formError() }}</p>
+          }
+
+          @if (isEmpty()) {
+            <div class="empty-banner">
+              El saldo del ahorro es {{ formatAmount(goal.balance) }}. Abona
+              primero para poder retirar.
+            </div>
+          }
+
+          <div class="field">
+            <label for="retirarAmount">Monto a retirar *</label>
+            <input
+              id="retirarAmount"
+              type="number"
+              step="0.01"
+              min="0.01"
+              formControlName="amount"
+              placeholder="Ej. 100000"
+            />
+            @if (
+              retirarForm.controls.amount.invalid &&
+              (retirarForm.controls.amount.touched ||
+                retirarForm.controls.amount.dirty)
+            ) {
+              <span class="field-error">Ingresa un monto mayor a 0.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label for="retirarNotes">Notas (opcional)</label>
+            <input
+              id="retirarNotes"
+              type="text"
+              formControlName="notes"
+              placeholder="Ej. Necesidad urgente"
+            />
+          </div>
+
+          <button type="submit" class="btn-primary" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Registrar retiro' }}
+          </button>
+        </form>
+      }
+    </section>
+
+    <section class="history-section">
+      <div class="section-head">
+        <h2>Historial de movimientos</h2>
+        <p class="form-hint">
+          Abonos y retiros realizados en este ahorro.
+        </p>
+      </div>
+
+      @if (goal.movements.length === 0) {
+        <p class="hint">Aún no hay movimientos en este ahorro.</p>
+      } @else {
+        <ul class="movement-items">
+          @for (movement of goal.movements; track movement.id) {
+            <li class="movement-item">
+              <span
+                class="movement-badge"
+                [class.withdraw]="movement.type === 'WITHDRAW'"
+              >
+                {{ movement.type === 'DEPOSIT' ? '+' : '−' }}
+              </span>
+              <div class="info">
+                <strong
+                  class="movement-amount"
+                  [class.withdraw]="movement.type === 'WITHDRAW'"
+                >
+                  {{ movement.type === 'DEPOSIT' ? '+' : '−' }}
+                  {{ formatAmount(movement.amount) }}
+                </strong>
+                <span class="sub">
+                  {{ movement.type === 'DEPOSIT' ? 'Abono' : 'Retiro' }}
+                </span>
+                @if (movement.notes) {
+                  <span class="note">{{ movement.notes }}</span>
+                }
+              </div>
+              <time class="date">{{ formatDate(movement.createdAt) }}</time>
+              <button
+                type="button"
+                class="icon-btn danger"
+                (click)="deleteMovement(movement)"
+                [disabled]="deletingMovementId() === movement.id"
+              >
+                {{ deletingMovementId() === movement.id ? '...' : 'Eliminar' }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</section>

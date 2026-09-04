@@ -51,6 +51,9 @@
               <span class="kind-dot" [class.personal]="debt.kind === 'PERSONAL'">
                 {{ debt.kind === 'ENTITY' ? '🏦' : '👤' }}
               </span>
+              @if (debt.interestType === 'WITH_INTEREST') {
+                <span class="kind-dot interest">📈</span>
+              }
             </span>
             @if (debt.lender) {
               <span class="sub">Acreedor: {{ debt.lender }}</span>
@@ -85,7 +88,7 @@
               <strong>{{ formatAmount(debt.totalAmount) }}</strong>
             </div>
             <div class="amount-row">
-              <span>Restante</span>
+              <span>{{ debt.interestType === 'WITH_INTEREST' ? 'Capital restante' : 'Restante' }}</span>
               <strong
                 class="remaining"
                 [class.danger]="debt.status === 'PENDING'"

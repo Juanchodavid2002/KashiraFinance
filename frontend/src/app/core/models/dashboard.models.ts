@@ -65,6 +65,7 @@ export interface DashboardSummary {
   monthlyEvolution: MonthlyEvolutionPoint[];
   comparison: DashboardComparison;
   debtSummary: DebtSummary;
+  savingsBalance: string;
 }
 
 export interface DashboardFilters {

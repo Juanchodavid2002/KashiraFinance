@@ -63,6 +63,7 @@ export class DebtDetailComponent implements OnInit {
       null as number | null,
       [Validators.required, Validators.min(0.01)],
     ],
+    capitalAmount: [null as number | null],
     paidDate: [todayIsoDate()],
     notes: [''],
     categoryId: ['', [Validators.required]],
@@ -112,14 +113,22 @@ export class DebtDetailComponent implements OnInit {
     );
   };
 
+  readonly isInterestBearing = (): boolean => {
+    return this.debt()?.interestType === 'WITH_INTEREST';
+  };
+
   selectMode(next: 'cuota' | 'abono'): void {
     if (this.saving()) {
       return;
     }
 
     this.formError.set('');
+    const defaultCapital = this.isInterestBearing()
+      ? (next === 'cuota' ? this.installmentAmount() : null)
+      : null;
     this.paymentForm.reset({
       amount: next === 'cuota' ? this.installmentAmount() : null,
+      capitalAmount: defaultCapital,
       paidDate: todayIsoDate(),
       notes: '',
       categoryId: this.defaultCategoryId(),
@@ -146,14 +155,26 @@ export class DebtDetailComponent implements OnInit {
     }
 
     const value = this.paymentForm.getRawValue();
-
-    this.addPayment({
+    const payload: {
+      amount: number;
+      capitalAmount?: number;
+      paidDate?: string;
+      notes?: string;
+      categoryId?: string;
+      paymentMethod?: string;
+    } = {
       amount: value.amount as number,
       paidDate: value.paidDate || undefined,
       notes: value.notes.trim() || undefined,
       categoryId: value.categoryId,
       paymentMethod: value.paymentMethod,
-    });
+    };
+
+    if (this.isInterestBearing() && value.capitalAmount != null) {
+      payload.capitalAmount = value.capitalAmount;
+    }
+
+    this.addPayment(payload);
   }
 
   payInstallment(): void {
@@ -170,19 +191,37 @@ export class DebtDetailComponent implements OnInit {
       return;
     }
 
-    this.addPayment({
+    const payload: {
+      amount: number;
+      capitalAmount?: number;
+      paidDate?: string;
+      notes?: string;
+      categoryId?: string;
+      paymentMethod?: string;
+      installment?: boolean;
+    } = {
       amount,
       paidDate: this.paymentForm.controls.paidDate.value || undefined,
       notes: this.paymentForm.controls.notes.value.trim() || undefined,
       categoryId: this.paymentForm.controls.categoryId.value,
       paymentMethod: this.paymentForm.controls.paymentMethod.value,
       installment: true,
-    });
+    };
+
+    if (this.isInterestBearing()) {
+      const capitalAmount = this.paymentForm.controls.capitalAmount.value;
+      if (capitalAmount != null) {
+        payload.capitalAmount = capitalAmount;
+      }
+    }
+
+    this.addPayment(payload);
   }
 
   private addPayment(
     payload: {
       amount: number;
+      capitalAmount?: number;
       paidDate?: string;
       notes?: string;
       categoryId?: string;
@@ -198,14 +237,20 @@ export class DebtDetailComponent implements OnInit {
       .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
         next: () => {
+          const isInterest = this.isInterestBearing();
+          const capitalMsg =
+            isInterest && payload.capitalAmount != null
+              ? ` (Capital: ${this.formatAmount(payload.capitalAmount)})`
+              : '';
           this.toast.success(
             payload.installment ? 'Cuota pagada' : 'Abono registrado',
             payload.installment
-              ? `Se registró una cuota de ${this.formatAmount(payload.amount)}.`
-              : `Se abonaron ${this.formatAmount(payload.amount)} a la deuda.`,
+              ? `Se registró una cuota de ${this.formatAmount(payload.amount)}.${capitalMsg}`
+              : `Se abonaron ${this.formatAmount(payload.amount)} a la deuda.${capitalMsg}`,
           );
           this.paymentForm.reset({
             amount: null,
+            capitalAmount: null,
             paidDate: todayIsoDate(),
             notes: '',
             categoryId: this.defaultCategoryId(),
@@ -260,6 +305,14 @@ export class DebtDetailComponent implements OnInit {
 
   trackByPayment(_index: number, payment: DebtPayment): string {
     return payment.id;
+  }
+
+  interestAmount(payment: DebtPayment): number {
+    if (!payment.capitalAmount) {
+      return 0;
+    }
+
+    return Number(payment.amount) - Number(payment.capitalAmount);
   }
 
   private loadDebt(): void {

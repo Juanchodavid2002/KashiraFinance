@@ -57,6 +57,8 @@ model User {
   categories          Category[]
   debts               Debt[]
   services            Service[]
+  savingsGoals        SavingsGoal[]
+  savingsMovements    SavingsMovement[]
   passwordResetCodes  PasswordResetCode[]
   hiddenCategories    UserHiddenCategory[]
 
@@ -189,6 +191,7 @@ model Debt {
   id                String   @id @default(uuid())
   userId            String
   kind              DebtKind
+  interestType      String   @default("NONE")
   name              String
   lender            String?
   totalAmount       Decimal  @db.Decimal(14, 2)
@@ -208,15 +211,16 @@ model Debt {
 }
 
 model DebtPayment {
-  id        String   @id @default(uuid())
-  debtId    String
-  userId    String
-  amount    Decimal  @db.Decimal(14, 2)
-  paidDate  DateTime @db.Date
-  notes     String?
-  debt      Debt     @relation(fields: [debtId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(uuid())
+  debtId        String
+  userId        String
+  amount        Decimal   @db.Decimal(14, 2)
+  capitalAmount Decimal?  @db.Decimal(14, 2)
+  paidDate      DateTime  @db.Date
+  notes         String?
+  debt          Debt      @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([debtId, paidDate(sort: Desc)])
   @@map("debt_payments")
@@ -253,4 +257,43 @@ model ServicePayment {
 
   @@index([serviceId, paidDate(sort: Desc)])
   @@map("service_payments")
+}
+
+model SavingsGoal {
+  id            String    @id @default(uuid())
+  userId        String
+  name          String
+  targetAmount  Decimal   @db.Decimal(14, 2)
+  balance       Decimal   @db.Decimal(14, 2) @default(0)
+  deadline      DateTime? @db.Date
+  notes         String?
+  status        String    @default("ACTIVE")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movements     SavingsMovement[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("savings_goals")
+}
+
+model SavingsMovement {
+  id            String      @id @default(uuid())
+  goalId        String
+  userId        String
+  type          SavingsMovementType
+  amount        Decimal     @db.Decimal(14, 2)
+  notes         String?
+  goal          SavingsGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([goalId, createdAt(sort: Desc)])
+  @@map("savings_movements")
+}
+
+enum SavingsMovementType {
+  DEPOSIT
+  WITHDRAW
 }

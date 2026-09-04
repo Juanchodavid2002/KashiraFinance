@@ -51,6 +51,39 @@
     </div>
 
     <div class="field">
+      <label>Tipo de interés *</label>
+      <div class="kind-toggle">
+        <button
+          type="button"
+          class="kind-option"
+          [class.active]="form.controls.interestType.value === 'NONE'"
+          (click)="setInterestType('NONE')"
+        >
+          <span class="kind-icon">🚫</span>
+          <span>Sin interés</span>
+        </button>
+        <button
+          type="button"
+          class="kind-option"
+          [class.active]="form.controls.interestType.value === 'WITH_INTEREST'"
+          (click)="setInterestType('WITH_INTEREST')"
+        >
+          <span class="kind-icon">📈</span>
+          <span>Con interés</span>
+        </button>
+      </div>
+      @if (form.controls.interestType.value === 'WITH_INTEREST') {
+        <span class="field-hint">
+          Al pagar, deberás indicar cuánto va a capital y cuánto a intereses.
+        </span>
+      } @else {
+        <span class="field-hint">
+          Cada pago reduce directamente el total de la deuda.
+        </span>
+      }
+    </div>
+
+    <div class="field">
       <label for="name">Nombre de la deuda *</label>
       <input
         id="name"

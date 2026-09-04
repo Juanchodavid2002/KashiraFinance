@@ -16,7 +16,7 @@ import { Subscription, finalize } from 'rxjs';
 import { DebtService } from '../../core/services/debt.service';
 import { ToastService } from '../../core/services/toast.service';
 import { todayIsoDate } from '../../core/utils/format';
-import type { DebtKind } from '../../core/models/debt.models';
+import type { DebtKind, InterestType } from '../../core/models/debt.models';
 
 function addMonths(isoDate: string, months: number): string {
   const [y, m, d] = isoDate.split('-').map(Number);
@@ -56,6 +56,7 @@ export class DebtForm implements OnInit, OnDestroy {
 
   readonly form = this.fb.group({
     kind: ['ENTITY' as DebtKind, [Validators.required]],
+    interestType: ['NONE' as InterestType, [Validators.required]],
     name: ['', [Validators.required, Validators.maxLength(200)]],
     lender: ['', [Validators.maxLength(200)]],
     totalAmount: [
@@ -106,6 +107,7 @@ export class DebtForm implements OnInit, OnDestroy {
           this.form.patchValue(
             {
               kind: debt.kind,
+              interestType: debt.interestType ?? 'NONE',
               name: debt.name,
               lender: debt.lender ?? '',
               totalAmount: Number(debt.totalAmount),
@@ -136,6 +138,10 @@ export class DebtForm implements OnInit, OnDestroy {
     this.form.controls.kind.setValue(kind);
     this.syncDueDate();
     this.updateDueDateLabel();
+  }
+
+  setInterestType(interestType: InterestType): void {
+    this.form.controls.interestType.setValue(interestType);
   }
 
   syncDueDate(): void {
@@ -175,6 +181,7 @@ export class DebtForm implements OnInit, OnDestroy {
     const value = this.form.getRawValue();
     const payload = {
       kind: value.kind as DebtKind,
+      interestType: value.interestType as InterestType,
       name: value.name.trim(),
       lender: value.lender.trim() || undefined,
       totalAmount: value.totalAmount as number,

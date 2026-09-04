@@ -145,6 +145,13 @@ export class Dashboard implements OnInit {
       Number(this.totalDebt()) <= 0 && this.pendingDebtsCount() <= 0,
   );
 
+  readonly savingsBalance = computed(
+    () => this.data()?.savingsBalance ?? '0',
+  );
+  readonly savingsCardHidden = computed(
+    () => Number(this.savingsBalance()) <= 0,
+  );
+
   readonly availablePercent = computed(() => {
     const summary = this.data();
 

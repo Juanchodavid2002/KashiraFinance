@@ -17,6 +17,9 @@
           <span class="kind-badge" [class.personal]="debt.kind === 'PERSONAL'">
             {{ debt.kind === 'ENTITY' ? '🏦 Entidad' : '👤 Personal' }}
           </span>
+          @if (debt.interestType === 'WITH_INTEREST') {
+            <span class="kind-badge interest-badge">📈 Con interés</span>
+          }
         </h1>
         @if (debt.lender) {
           <p class="sub">Acreedor: {{ debt.lender }}</p>
@@ -43,11 +46,11 @@
         <strong>{{ formatAmount(debt.totalAmount) }}</strong>
       </div>
       <div class="summary-card">
-        <span class="label">Pagado</span>
+        <span class="label">{{ debt.interestType === 'WITH_INTEREST' ? 'Capital pagado' : 'Pagado' }}</span>
         <strong class="positive">{{ formatAmount(debt.paidAmount) }}</strong>
       </div>
       <div class="summary-card">
-        <span class="label">Restante</span>
+        <span class="label">{{ debt.interestType === 'WITH_INTEREST' ? 'Capital restante' : 'Restante' }}</span>
         <strong [class.danger]="debt.status === 'PENDING'">
           {{ formatAmount(debt.remainingAmount) }}
         </strong>
@@ -192,6 +195,23 @@
               <strong>{{ formatAmount(debt.installmentAmount!) }}</strong>
             </div>
 
+            @if (isInterestBearing()) {
+              <div class="field">
+                <label for="capitalAmount">Monto a capital *</label>
+                <input
+                  id="capitalAmount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  formControlName="capitalAmount"
+                  placeholder="Ej. 200000"
+                />
+                <span class="field-hint">
+                  Parte de la cuota que reduce el total de la deuda.
+                </span>
+              </div>
+            }
+
             <div class="row">
               <div class="field">
                 <label for="paidDate">Fecha del pago</label>
@@ -271,14 +291,31 @@
               </div>
 
               <div class="field">
-                <label for="paidDate">Fecha del abono</label>
+                <label for="paidDateAbono">Fecha del abono</label>
                 <input
-                  id="paidDate"
+                  id="paidDateAbono"
                   type="date"
                   formControlName="paidDate"
                 />
               </div>
             </div>
+
+            @if (isInterestBearing()) {
+              <div class="field">
+                <label for="capitalAmountAbono">Monto a capital *</label>
+                <input
+                  id="capitalAmountAbono"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  formControlName="capitalAmount"
+                  placeholder="Ej. 200000"
+                />
+                <span class="field-hint">
+                  Parte del abono que reduce el total de la deuda.
+                </span>
+              </div>
+            }
 
             <div class="field">
               <label for="paymentNotes">Notas (opcional)</label>
@@ -337,6 +374,12 @@
               <span class="payment-badge">✓</span>
               <div class="info">
                 <strong>{{ formatAmount(payment.amount) }}</strong>
+                @if (payment.capitalAmount && debt.interestType === 'WITH_INTEREST') {
+                  <span class="sub payment-breakdown">
+                    Capital: {{ formatAmount(payment.capitalAmount) }}
+                    · Interés: {{ formatAmount(interestAmount(payment)) }}
+                  </span>
+                }
                 @if (payment.notes) {
                   <span class="sub">{{ payment.notes }}</span>
                 }

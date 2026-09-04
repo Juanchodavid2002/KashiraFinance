@@ -1,0 +1,22 @@
+.page-narrow {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: var(--spacing-5) var(--spacing-4);
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: var(--spacing-4);
+  color: var(--color-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.back:hover {
+  color: var(--color-primary);
+}
+
+h1 {
+  margin: 0 0 var(--spacing-5);
+  font-size: 1.5rem;
+}

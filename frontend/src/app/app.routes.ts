@@ -169,6 +169,34 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'savings',
+        loadComponent: () =>
+          import('./savings/savings-list/savings-list').then(
+            (m) => m.SavingsList,
+          ),
+      },
+      {
+        path: 'savings/new',
+        loadComponent: () =>
+          import('./savings/savings-form/savings-form').then(
+            (m) => m.SavingsForm,
+          ),
+      },
+      {
+        path: 'savings/:id',
+        loadComponent: () =>
+          import('./savings/savings-detail/savings-detail').then(
+            (m) => m.SavingsDetailComponent,
+          ),
+      },
+      {
+        path: 'savings/:id/edit',
+        loadComponent: () =>
+          import('./savings/savings-form/savings-form').then(
+            (m) => m.SavingsForm,
+          ),
+      },
+      {
         path: 'configuracion',
         loadComponent: () =>
           import('./settings/settings').then((m) => m.Settings),

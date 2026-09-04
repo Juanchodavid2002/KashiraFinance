@@ -16,6 +16,10 @@ export class CreateDebtDto {
   @IsEnum(DebtKind)
   kind!: DebtKind;
 
+  @IsOptional()
+  @IsString()
+  interestType?: string;
+
   @IsString()
   @MinLength(1)
   @MaxLength(200)

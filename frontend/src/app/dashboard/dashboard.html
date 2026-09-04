@@ -133,6 +133,24 @@
           </span>
         </div>
       </a>
+
+      <a
+        routerLink="/app/savings"
+        class="stat-card savings-card"
+        [class.hidden]="savingsCardHidden()"
+      >
+        <div class="stat-head">
+          <span class="stat-label">Ahorros</span>
+          <div class="stat-icon savings">🎯</div>
+        </div>
+        <div class="stat-value">
+          {{ formatAmount(d.savingsBalance) }}
+        </div>
+        <div class="savings-meta">
+          <span class="savings-pill">Ahorrado</span>
+          <span class="savings-info">Apartado para tus metas</span>
+        </div>
+      </a>
     </div>
 
     <!-- Quick Actions -->
