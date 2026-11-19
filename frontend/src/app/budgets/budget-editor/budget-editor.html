@@ -1,0 +1,182 @@
+<section class="page-wide">
+  <a routerLink="/app/budgets" class="back">← Volver a presupuestos</a>
+
+  @if (loading()) {
+    <p class="hint">Cargando presupuesto…</p>
+  } @else if (error()) {
+    <p class="form-error">{{ error() }}</p>
+  } @else {
+    <header class="editor-head">
+      <input
+        class="title-input"
+        type="text"
+        maxlength="100"
+        aria-label="Nombre del presupuesto"
+        [ngModel]="name()"
+        (ngModelChange)="name.set($event)"
+        (blur)="saveName()"
+        (keydown.enter)="$any($event.target).blur()"
+      />
+      <div class="head-actions">
+        <button type="button" class="link-btn" (click)="duplicate()">
+          Duplicar
+        </button>
+        <button type="button" class="link-btn danger" (click)="removeBudget()">
+          Eliminar
+        </button>
+      </div>
+    </header>
+
+    <!-- Resumen -->
+    <div class="summary">
+      <div class="sum-card income">
+        <span>Ingresos</span>
+        <strong>{{ format(totalIncome()) }}</strong>
+      </div>
+      <div class="sum-card expense">
+        <span>Gastos</span>
+        <strong>{{ format(totalExpense()) }}</strong>
+      </div>
+      <div class="sum-card balance" [class.negative]="balance() < 0">
+        <span>{{ balance() < 0 ? 'Te faltan' : 'Te queda' }}</span>
+        <strong>{{ format(balance() < 0 ? -balance() : balance()) }}</strong>
+      </div>
+      <div class="sum-card used" [class.over]="usedPercent() > 100">
+        <span>Gastos / ingresos</span>
+        <strong>{{ usedPercent() }}%</strong>
+        <div class="bar">
+          <div class="bar-fill" [style.width.%]="usedPercent() > 100 ? 100 : usedPercent()"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hoja: ingresos | gastos -->
+    <div class="sheet">
+      <!-- INGRESOS -->
+      <div class="panel">
+        <div class="panel-head income">
+          <h2>Ingresos</h2>
+          <strong>{{ format(totalIncome()) }}</strong>
+        </div>
+
+        @for (line of incomeLines(); track line.id) {
+          <div class="row" [class.off]="!line.included">
+            <input
+              type="checkbox"
+              class="check"
+              title="Incluir en el cálculo"
+              [ngModel]="line.included"
+              (ngModelChange)="toggleIncluded(line, $event)"
+            />
+            <input
+              type="text"
+              class="cell name"
+              placeholder="Concepto"
+              maxlength="150"
+              [id]="'line-name-' + line.id"
+              [ngModel]="line.name"
+              (ngModelChange)="setName(line, $event)"
+              (blur)="saveLine(line.id)"
+            />
+            <input
+              type="text"
+              appMoneyInput
+              class="cell amount"
+              placeholder="0"
+              [ngModel]="line.amount"
+              (ngModelChange)="setAmount(line, $event)"
+              (blur)="saveLine(line.id)"
+              (keydown.enter)="addLine('INCOME')"
+            />
+            <button
+              type="button"
+              class="del"
+              title="Eliminar fila"
+              (click)="removeLine(line)"
+            >
+              ✕
+            </button>
+          </div>
+        } @empty {
+          <p class="empty">Sin ingresos todavía.</p>
+        }
+
+        <button type="button" class="add-row" (click)="addLine('INCOME')">
+          + Agregar ingreso
+        </button>
+      </div>
+
+      <!-- GASTOS -->
+      <div class="panel">
+        <div class="panel-head expense">
+          <h2>Gastos</h2>
+          <strong>{{ format(totalExpense()) }}</strong>
+        </div>
+
+        @for (line of expenseLines(); track line.id) {
+          <div class="row" [class.off]="!line.included">
+            <input
+              type="checkbox"
+              class="check"
+              title="Incluir en el cálculo"
+              [ngModel]="line.included"
+              (ngModelChange)="toggleIncluded(line, $event)"
+            />
+            <input
+              type="text"
+              class="cell name"
+              placeholder="Concepto"
+              maxlength="150"
+              [id]="'line-name-' + line.id"
+              [ngModel]="line.name"
+              (ngModelChange)="setName(line, $event)"
+              (blur)="saveLine(line.id)"
+            />
+            <input
+              type="text"
+              appMoneyInput
+              class="cell amount"
+              placeholder="0"
+              [ngModel]="line.amount"
+              (ngModelChange)="setAmount(line, $event)"
+              (blur)="saveLine(line.id)"
+              (keydown.enter)="addLine('EXPENSE')"
+            />
+            <button
+              type="button"
+              class="del"
+              title="Eliminar fila"
+              (click)="removeLine(line)"
+            >
+              ✕
+            </button>
+          </div>
+        } @empty {
+          <p class="empty">Sin gastos todavía.</p>
+        }
+
+        <button type="button" class="add-row" (click)="addLine('EXPENSE')">
+          + Agregar gasto
+        </button>
+      </div>
+    </div>
+
+    <p class="tip">
+      Marca o desmarca la casilla de una fila para ver cómo cambia el saldo sin
+      borrarla. Presiona Enter en un monto para agregar otra fila. Todo se guarda
+      solo.
+    </p>
+
+    <div class="field notes">
+      <label for="notes">Notas</label>
+      <textarea
+        id="notes"
+        rows="2"
+        placeholder="Apuntes de este escenario (opcional)"
+        [ngModel]="notes()"
+        (ngModelChange)="notes.set($event)"
+        (blur)="saveNotes()"
+      ></textarea>
+    </div>
+  }
+</section>

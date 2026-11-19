@@ -40,7 +40,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  background: white;
+  background: var(--color-surface);
   padding: 6px;
   border-radius: 12px;
   border: 1px solid var(--color-border);
@@ -111,7 +111,7 @@
 }
 
 .stat-card {
-  background: white;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 20px;
@@ -197,7 +197,7 @@
 }
 
 .stat-icon.debt {
-  background: #fce7f3;
+  background: color-mix(in srgb, #db2777 16%, transparent);
   color: #db2777;
 }
 
@@ -228,7 +228,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: #ffe4e6;
+  background: color-mix(in srgb, #e11d48 16%, transparent);
   color: #e11d48;
   font-size: 0.8rem;
   font-weight: 700;
@@ -260,7 +260,7 @@
 }
 
 .stat-icon.savings {
-  background: #e0f2fe;
+  background: color-mix(in srgb, #0284c7 16%, transparent);
   color: #0284c7;
 }
 
@@ -288,7 +288,7 @@
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  background: #e0f2fe;
+  background: color-mix(in srgb, #0284c7 16%, transparent);
   color: #0284c7;
   font-size: 0.78rem;
   font-weight: 700;
@@ -484,7 +484,7 @@
 }
 
 .card {
-  background: white;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 24px;
@@ -795,7 +795,7 @@
 
 /* Empty state */
 .empty-state {
-  background: white;
+  background: var(--color-surface);
   border: 1px dashed var(--color-border);
   border-radius: 16px;
   padding: 48px 24px;
@@ -947,4 +947,22 @@
   .month-label {
     padding: 0 10px;
   }
+}
+
+.link-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md, 0 6px 16px rgb(15 23 42 / 0.08));
+}
+
+.link-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }

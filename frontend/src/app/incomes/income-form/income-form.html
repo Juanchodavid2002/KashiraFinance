@@ -30,9 +30,8 @@
         <label for="amount">Monto *</label>
         <input
           id="amount"
-          type="number"
-          step="0.01"
-          min="0.01"
+          type="text"
+          appMoneyInput
           formControlName="amount"
           placeholder="Ej. 100000"
         />
@@ -48,15 +47,23 @@
     </div>
 
     <div class="field">
-      <label for="source">Fuente</label>
-      <input
-        id="source"
-        type="text"
-        formControlName="source"
-        placeholder="Ej. Empresa, freelance (opcional)"
-      />
-      @if (invalid('source')) {
-        <span class="field-error">Máximo 100 caracteres.</span>
+      <label for="source">Proveedor</label>
+      <select id="source" formControlName="providerId">
+        <option value="">Sin proveedor</option>
+        @for (provider of providers(); track provider.id) {
+          <option [value]="provider.id">{{ provider.name }}</option>
+        }
+      </select>
+      @if (legacyProvider(); as legacy) {
+        <span class="field-hint">
+          Proveedor anterior: «{{ legacy }}». Elige una de tu lista para ligarla.
+        </span>
+      }
+      @if (providers().length === 0) {
+        <span class="field-hint">
+          Aún no tienes proveedores.
+          <a routerLink="/app/configuracion" [queryParams]="{ modulo: 'proveedores' }">Créalas en Configuración</a>.
+        </span>
       }
     </div>
 

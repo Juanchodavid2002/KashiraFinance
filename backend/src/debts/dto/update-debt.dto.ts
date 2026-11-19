@@ -2,10 +2,13 @@ import { Type } from 'class-transformer';
 import {
   IsDateString,
   IsEnum,
+  IsIn,
   IsInt,
   IsNumber,
   IsOptional,
+  IsUUID,
   IsString,
+  Max,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -21,6 +24,17 @@ export class UpdateDebtDto {
   interestType?: string;
 
   @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01)
+  @Max(999)
+  interestRate?: number;
+
+  @IsOptional()
+  @IsIn(['MONTHLY', 'ANNUAL'])
+  interestPeriod?: string;
+
+  @IsOptional()
   @IsString()
   @MaxLength(200)
   name?: string;
@@ -29,6 +43,10 @@ export class UpdateDebtDto {
   @IsString()
   @MaxLength(200)
   lender?: string;
+
+  @IsOptional()
+  @IsUUID()
+  providerId?: string;
 
   @IsOptional()
   @Type(() => Number)

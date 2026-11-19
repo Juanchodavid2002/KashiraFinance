@@ -211,6 +211,26 @@
             }
           </div>
 
+          <!-- Usuario -->
+          <div class="field" [class.error]="form.controls.username.invalid && form.controls.username.touched">
+            <label for="username">Usuario</label>
+            <div class="input-wrap">
+              <input type="text" id="username" formControlName="username" placeholder="tu_usuario"
+                autocomplete="username" />
+            </div>
+            @if (form.controls.username.invalid && form.controls.username.touched) {
+            <span class="field-error show">
+              @if (form.controls.username.hasError('required')) {
+              Ingresa un usuario
+              } @else if (form.controls.username.hasError('pattern')) {
+              Solo letras, n&uacute;meros, &quot;_&quot; y &quot;.&quot;
+              } @else {
+              Debe tener entre 3 y 30 caracteres
+              }
+            </span>
+            }
+          </div>
+
           <!-- Correo -->
           <div class="field" [class.error]="form.controls.email.invalid && form.controls.email.touched">
             <label for="email">Correo electr&oacute;nico</label>

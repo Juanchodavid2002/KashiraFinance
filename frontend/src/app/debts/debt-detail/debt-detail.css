@@ -37,17 +37,17 @@
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: #dcfce7;
+  background: var(--color-success-soft);
   color: var(--color-success);
 }
 
 .kind-badge.personal {
-  background: #ede9fe;
+  background: color-mix(in srgb, #6d28d9 16%, transparent);
   color: #6d28d9;
 }
 
 .kind-badge.interest-badge {
-  background: #fff7ed;
+  background: color-mix(in srgb, #c2410c 16%, transparent);
   color: #c2410c;
 }
 
@@ -334,7 +334,7 @@
 }
 
 .paid-banner {
-  background: #dcfce7;
+  background: var(--color-success-soft);
   color: var(--color-success);
   border-radius: var(--radius-lg);
   padding: var(--spacing-4);
@@ -383,7 +383,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: #dcfce7;
+  background: var(--color-success-soft);
   color: var(--color-success);
   font-weight: 700;
 }

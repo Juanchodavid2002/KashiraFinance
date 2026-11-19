@@ -62,7 +62,10 @@ function debtWithBalance(debt: {
   id: string;
   userId: string;
   kind: DebtKind;
+  providerId?: string | null;
   interestType: string;
+  interestRate: Prisma.Decimal | null;
+  interestPeriod: string | null;
   name: string;
   lender: string | null;
   totalAmount: Prisma.Decimal;
@@ -79,7 +82,10 @@ function debtWithBalance(debt: {
   id: string;
   userId: string;
   kind: DebtKind;
+  providerId: string | null;
   interestType: string;
+  interestRate: string | null;
+  interestPeriod: string | null;
   name: string;
   lender: string | null;
   totalAmount: string;
@@ -106,7 +112,10 @@ function debtWithBalance(debt: {
     id: debt.id,
     userId: debt.userId,
     kind: debt.kind,
+    providerId: debt.providerId ?? null,
     interestType: debt.interestType,
+    interestRate: debt.interestRate?.toString() ?? null,
+    interestPeriod: debt.interestPeriod,
     name: debt.name,
     lender: debt.lender,
     totalAmount: total.toString(),
@@ -190,6 +199,15 @@ export class DebtsService {
   }
 
   async create(userId: string, dto: CreateDebtDto) {
+    const interestType = dto.interestType ?? 'NONE';
+    const providerName = await this.resolveProviderName(userId, dto.providerId);
+
+    if (interestType === 'WITH_INTEREST' && dto.interestRate === undefined) {
+      throw new BadRequestException(
+        'Indica la tasa de interés de la deuda',
+      );
+    }
+
     const startDate = dto.startDate ?? this.today();
     const dueDate = resolveDueDate(
       dto.kind,
@@ -203,9 +221,18 @@ export class DebtsService {
       data: {
         userId,
         kind: dto.kind,
-        interestType: dto.interestType ?? 'NONE',
+        interestType,
+        interestRate:
+          interestType === 'WITH_INTEREST'
+            ? new Prisma.Decimal(dto.interestRate as number)
+            : null,
+        interestPeriod:
+          interestType === 'WITH_INTEREST'
+            ? (dto.interestPeriod ?? 'MONTHLY')
+            : null,
         name: dto.name,
-        lender: dto.lender,
+        lender: providerName ?? dto.lender,
+        providerId: dto.providerId,
         totalAmount: new Prisma.Decimal(dto.totalAmount),
         totalInstallments: dto.totalInstallments,
         paidInstallments: dto.paidInstallments,
@@ -235,6 +262,21 @@ export class DebtsService {
       );
     }
 
+    const interestType = dto.interestType ?? current.interestType;
+    const providerName = await this.resolveProviderName(userId, dto.providerId);
+    const interestRate =
+      dto.interestRate !== undefined
+        ? dto.interestRate
+        : current.interestRate !== null
+          ? Number(current.interestRate)
+          : undefined;
+
+    if (interestType === 'WITH_INTEREST' && interestRate === undefined) {
+      throw new BadRequestException(
+        'Indica la tasa de interés de la deuda',
+      );
+    }
+
     const kind = dto.kind ?? current.kind;
     const startDate =
       dto.startDate ?? new Date(current.startDate).toISOString().slice(0, 10);
@@ -259,8 +301,17 @@ export class DebtsService {
       data: {
         kind: dto.kind,
         interestType: dto.interestType,
+        interestRate:
+          interestType === 'WITH_INTEREST'
+            ? new Prisma.Decimal(interestRate as number)
+            : null,
+        interestPeriod:
+          interestType === 'WITH_INTEREST'
+            ? (dto.interestPeriod ?? current.interestPeriod ?? 'MONTHLY')
+            : null,
         name: dto.name,
-        lender: dto.lender,
+        lender: providerName ?? dto.lender,
+        providerId: dto.providerId,
         totalAmount: newTotal,
         totalInstallments: dto.totalInstallments,
         paidInstallments: dto.paidInstallments,
@@ -561,6 +612,27 @@ export class DebtsService {
     }
 
     return where;
+  }
+
+  /** Valida que el proveedor sea del usuario y devuelve su nombre. */
+  private async resolveProviderName(
+    userId: string,
+    providerId?: string,
+  ): Promise<string | undefined> {
+    if (!providerId) {
+      return undefined;
+    }
+
+    const creditor = await this.prisma.provider.findFirst({
+      where: { id: providerId, userId },
+      select: { name: true },
+    });
+
+    if (!creditor) {
+      throw new NotFoundException('Proveedor no válido');
+    }
+
+    return creditor.name;
   }
 
   private today(): string {

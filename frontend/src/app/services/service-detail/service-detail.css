@@ -195,7 +195,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: #dcfce7;
+  background: var(--color-success-soft);
   color: var(--color-success);
   font-weight: 700;
 }

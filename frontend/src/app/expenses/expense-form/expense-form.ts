@@ -18,10 +18,11 @@ import type {
   Category,
   PaymentMethod,
 } from '../../core/models/expense.models';
+import { MoneyInputDirective } from '../../core/directives/money-input.directive';
 
 @Component({
   selector: 'app-expense-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, MoneyInputDirective],
   templateUrl: './expense-form.html',
   styleUrl: './expense-form.css',
 })

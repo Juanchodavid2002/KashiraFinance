@@ -12,10 +12,11 @@ import { CurrencyService } from '../../core/services/currency.service';
 import { ToastService } from '../../core/services/toast.service';
 import { todayIsoDate } from '../../core/utils/format';
 import { formatAmount } from '../../core/utils/format';
+import { MoneyInputDirective } from '../../core/directives/money-input.directive';
 
 @Component({
   selector: 'app-savings-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, MoneyInputDirective],
   templateUrl: './savings-form.html',
   styleUrl: './savings-form.css',
 })

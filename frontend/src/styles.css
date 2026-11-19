@@ -19,6 +19,9 @@
   --color-text-dim: #94a3b8;
   --color-border: #e8eaf0;
 
+  --sidebar-bg: #0b1020;
+  --sidebar-raised: #151b33;
+
   --radius-md: 10px;
   --radius-lg: 16px;
 
@@ -34,8 +37,44 @@
   --spacing-6: 32px;
 }
 
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-primary-soft: rgb(99 102 241 / 0.18);
+  --color-success-soft: rgb(16 185 129 / 0.16);
+  --color-danger-soft: rgb(239 68 68 / 0.16);
+  --color-warning-soft: rgb(245 158 11 / 0.16);
+  --color-bg: #0b1020;
+  --color-surface: #141a2e;
+  --color-surface-2: #19203a;
+  --color-text: #e5e9f5;
+  --color-muted: #9aa6bd;
+  --color-text-dim: #6b7893;
+  --color-border: #263050;
+
+  --sidebar-bg: #060914;
+  --sidebar-raised: #121931;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.35);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 20px 40px -12px rgb(0 0 0 / 0.6);
+}
+
 * {
   box-sizing: border-box;
+}
+
+/* Controles nativos: heredan la paleta (también en modo oscuro). */
+input:not([type='checkbox']):not([type='radio']),
+select,
+textarea {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-dim);
 }
 
 html {
@@ -113,8 +152,8 @@ body {
 }
 
 .form-error {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--color-danger-soft);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 35%, transparent);
   color: var(--color-danger);
   padding: var(--spacing-3);
   border-radius: var(--radius-md);

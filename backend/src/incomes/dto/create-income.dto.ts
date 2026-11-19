@@ -3,6 +3,7 @@ import {
   IsDateString,
   IsNumber,
   IsOptional,
+  IsUUID,
   IsString,
   MaxLength,
   Min,
@@ -29,6 +30,10 @@ export class CreateIncomeDto {
   @IsString()
   @MaxLength(100)
   source?: string;
+
+  @IsOptional()
+  @IsUUID()
+  providerId?: string;
 
   @IsOptional()
   @IsString()

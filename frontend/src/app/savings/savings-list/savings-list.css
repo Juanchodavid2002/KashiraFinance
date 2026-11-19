@@ -80,7 +80,7 @@
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 999px;
-  background: #dcfce7;
+  background: var(--color-success-soft);
   color: var(--color-success);
 }
 

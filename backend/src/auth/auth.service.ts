@@ -19,6 +19,7 @@ export interface AuthResult {
     id: string;
     name: string;
     email: string;
+    username: string | null;
     currency: string;
     createdAt: Date;
   };
@@ -41,10 +42,17 @@ export class AuthService {
       throw new ConflictException('El email ya está registrado');
     }
 
+    const username = dto.username?.trim().toLowerCase();
+
+    if (username && (await this.usersService.findByUsername(username))) {
+      throw new ConflictException('El usuario ya está en uso');
+    }
+
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_SALT_ROUNDS);
     const user = await this.usersService.create({
       name: dto.name.trim(),
       email,
+      username,
       passwordHash,
       currency: dto.currency,
     });
@@ -53,8 +61,10 @@ export class AuthService {
   }
 
   async login(dto: LoginDto): Promise<AuthResult> {
-    const email = dto.email.trim().toLowerCase();
-    const user = await this.usersService.findByEmail(email);
+    const identifier = (dto.identifier ?? dto.email ?? '').trim();
+    const user = identifier
+      ? await this.usersService.findByIdentifier(identifier)
+      : null;
 
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas');
@@ -73,6 +83,7 @@ export class AuthService {
       id: user.id,
       name: user.name,
       email: user.email,
+      username: user.username,
       currency: user.currency,
       createdAt: user.createdAt,
     });

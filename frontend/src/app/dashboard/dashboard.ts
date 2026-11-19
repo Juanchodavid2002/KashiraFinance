@@ -343,7 +343,7 @@ export class Dashboard implements OnInit {
           },
           y: {
             beginAtZero: true,
-            grid: { color: '#f1f5f9', drawBorder: false },
+            grid: { color: 'rgba(148, 163, 184, 0.18)', drawBorder: false },
             ticks: {
               color: '#94a3b8',
               callback: (value) => this.shortAmount(value as number),

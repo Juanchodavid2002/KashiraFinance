@@ -44,6 +44,7 @@ enum Currency {
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
+  username     String?  @unique
   name         String
   passwordHash String
   currency     Currency @default(COP)
@@ -56,6 +57,9 @@ model User {
   envelopeMovements   EnvelopeMovement[]
   categories          Category[]
   debts               Debt[]
+  providers           Provider[]
+  budgets             Budget[]
+  budgetLines         BudgetLine[]
   services            Service[]
   savingsGoals        SavingsGoal[]
   savingsMovements    SavingsMovement[]
@@ -178,12 +182,15 @@ model Income {
   amount      Decimal  @db.Decimal(14, 2)
   incomeDate  DateTime @db.Date
   source      String?
+  providerId  String?
   notes       String?
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider    Provider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([userId, incomeDate(sort: Desc)])
+  @@index([providerId])
   @@map("incomes")
 }
 
@@ -192,8 +199,11 @@ model Debt {
   userId            String
   kind              DebtKind
   interestType      String   @default("NONE")
+  interestRate      Decimal? @db.Decimal(7, 2)
+  interestPeriod    String?
   name              String
   lender            String?
+  providerId        String?
   totalAmount       Decimal  @db.Decimal(14, 2)
   totalInstallments Int?
   paidInstallments  Int?
@@ -202,12 +212,29 @@ model Debt {
   dueDate           DateTime? @db.Date
   notes             String?
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          Provider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
   payments          DebtPayment[]
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   @@index([userId, createdAt(sort: Desc)])
+  @@index([providerId])
   @@map("debts")
+}
+
+model Provider {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  notes     String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  debts     Debt[]
+  incomes   Income[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@map("providers")
 }
 
 model DebtPayment {
@@ -296,4 +323,43 @@ model SavingsMovement {
 enum SavingsMovementType {
   DEPOSIT
   WITHDRAW
+}
+
+enum BudgetLineType {
+  INCOME
+  EXPENSE
+}
+
+/// Presupuesto / simulador: no toca los ingresos ni gastos reales.
+model Budget {
+  id        String       @id @default(uuid())
+  userId    String
+  name      String
+  notes     String?
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lines     BudgetLine[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId, updatedAt(sort: Desc)])
+  @@map("budgets")
+}
+
+model BudgetLine {
+  id        String         @id @default(uuid())
+  budgetId  String
+  userId    String
+  type      BudgetLineType
+  name      String         @default("")
+  amount    Decimal        @default(0) @db.Decimal(16, 2)
+  included  Boolean        @default(true)
+  position  Int            @default(0)
+  budget    Budget         @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([budgetId, position])
+  @@map("budget_lines")
 }

@@ -60,3 +60,12 @@ textarea:focus {
     grid-template-columns: 1fr;
   }
 }
+
+.field-hint {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.field-hint a {
+  color: var(--color-primary);
+}

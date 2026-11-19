@@ -65,6 +65,15 @@ export class Register {
   readonly form = this.fb.nonNullable.group(
     {
       name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
+      username: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(3),
+          Validators.maxLength(30),
+          Validators.pattern(/^[a-zA-Z0-9_.]+$/),
+        ],
+      ],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]],
@@ -129,12 +138,13 @@ export class Register {
       return;
     }
 
-    const { name, email, password, currency } = this.form.getRawValue();
+    const { name, username, email, password, currency } =
+      this.form.getRawValue();
 
     this.submitting.set(true);
     this.errorMessage.set(null);
 
-    this.authService.register({ name, email, password, currency }).subscribe({
+    this.authService.register({ name, username, email, password, currency }).subscribe({
       next: () => {
         this.toast.success('Cuenta creada', `Bienvenido, ${name}.`);
         void this.router.navigate(['/app/dashboard']);
@@ -142,7 +152,7 @@ export class Register {
       error: (error: { status: number }) => {
         const message =
           error.status === 409
-            ? 'Este correo ya está registrado'
+            ? 'El correo o el usuario ya está registrado'
             : 'No se pudo crear la cuenta. Intenta nuevamente.';
         this.errorMessage.set(message);
         this.toast.error('No se pudo crear la cuenta', message);

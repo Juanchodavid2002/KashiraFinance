@@ -1,0 +1,293 @@
+.page-wide {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--spacing-5) var(--spacing-4);
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: var(--spacing-3);
+  color: var(--color-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.back:hover {
+  color: var(--color-primary);
+}
+
+.hint {
+  color: var(--color-muted);
+}
+
+.editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.title-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-family: inherit;
+}
+
+.title-input:hover {
+  border-color: var(--color-border);
+}
+
+.title-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+.head-actions {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.link-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.link-btn.danger {
+  color: var(--color-danger);
+}
+
+/* ── Resumen ── */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.sum-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--spacing-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.sum-card span {
+  color: var(--color-muted);
+  font-size: 0.82rem;
+}
+
+.sum-card strong {
+  font-size: 1.35rem;
+}
+
+.sum-card.income strong {
+  color: var(--color-success);
+}
+
+.sum-card.expense strong {
+  color: var(--color-danger);
+}
+
+.sum-card.balance strong {
+  color: var(--color-success);
+}
+
+.sum-card.balance.negative strong {
+  color: var(--color-danger);
+}
+
+.bar {
+  height: 6px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.2s ease;
+}
+
+.sum-card.used.over .bar-fill {
+  background: var(--color-danger);
+}
+
+/* ── Hoja ── */
+.sheet {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-4);
+  align-items: start;
+}
+
+.panel {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.panel-head h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.panel-head.income strong {
+  color: var(--color-success);
+}
+
+.panel-head.expense strong {
+  color: var(--color-danger);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 22px 1fr 150px 28px;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 6px var(--spacing-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.row.off .cell {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.check {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.cell {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.cell:hover {
+  border-color: var(--color-border);
+}
+
+.cell:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+.cell.amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.del {
+  padding: 4px;
+  border: none;
+  background: none;
+  color: var(--color-muted);
+  cursor: pointer;
+  opacity: 0.5;
+}
+
+.del:hover {
+  color: var(--color-danger);
+  opacity: 1;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--spacing-4);
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.add-row {
+  width: 100%;
+  padding: var(--spacing-3);
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.add-row:hover {
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.tip {
+  margin: var(--spacing-4) 0;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.notes textarea {
+  padding: var(--spacing-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+}
+
+@media (max-width: 900px) {
+  .summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sheet {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-wide {
+    padding: var(--spacing-4) var(--spacing-3);
+  }
+
+  .title-input {
+    font-size: 1.25rem;
+  }
+
+  .row {
+    grid-template-columns: 22px 1fr 110px 24px;
+  }
+}

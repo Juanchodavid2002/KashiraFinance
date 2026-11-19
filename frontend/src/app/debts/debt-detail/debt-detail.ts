@@ -23,10 +23,11 @@ import type {
   PaymentMethod,
 } from '../../core/models/expense.models';
 import type { DebtDetail, DebtPayment } from '../../core/models/debt.models';
+import { MoneyInputDirective } from '../../core/directives/money-input.directive';
 
 @Component({
   selector: 'app-debt-detail',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, MoneyInputDirective],
   templateUrl: './debt-detail.html',
   styleUrl: './debt-detail.css',
 })

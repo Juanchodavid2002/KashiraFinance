@@ -18,7 +18,12 @@
             {{ debt.kind === 'ENTITY' ? '🏦 Entidad' : '👤 Personal' }}
           </span>
           @if (debt.interestType === 'WITH_INTEREST') {
-            <span class="kind-badge interest-badge">📈 Con interés</span>
+            <span class="kind-badge interest-badge">
+              📈 Con interés
+              @if (debt.interestRate) {
+                · {{ debt.interestRate }}% {{ debt.interestPeriod === 'ANNUAL' ? 'anual' : 'mensual' }}
+              }
+            </span>
           }
         </h1>
         @if (debt.lender) {
@@ -200,9 +205,8 @@
                 <label for="capitalAmount">Monto a capital *</label>
                 <input
                   id="capitalAmount"
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type="text"
+ appMoneyInput
                   formControlName="capitalAmount"
                   placeholder="Ej. 200000"
                 />
@@ -275,9 +279,8 @@
                 <label for="amount">Monto del abono *</label>
                 <input
                   id="amount"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
+                  type="text"
+ appMoneyInput
                   formControlName="amount"
                   placeholder="Ej. 100000"
                 />
@@ -305,9 +308,8 @@
                 <label for="capitalAmountAbono">Monto a capital *</label>
                 <input
                   id="capitalAmountAbono"
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type="text"
+ appMoneyInput
                   formControlName="capitalAmount"
                   placeholder="Ej. 200000"
                 />

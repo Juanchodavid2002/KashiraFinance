@@ -22,6 +22,8 @@ export function confirmAction(
       ? 'var(--color-danger)'
       : 'var(--color-primary)',
     cancelButtonColor: 'var(--color-border)',
+    background: 'var(--color-surface)',
+    color: 'var(--color-text)',
     buttonsStyling: true,
     customClass: {
       confirmButton: 'swal-confirm-btn',

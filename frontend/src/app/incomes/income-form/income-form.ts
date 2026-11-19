@@ -7,13 +7,15 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
+import { ProviderService } from '../../core/services/provider.service';
 import { IncomeService } from '../../core/services/income.service';
 import { ToastService } from '../../core/services/toast.service';
+import { MoneyInputDirective } from '../../core/directives/money-input.directive';
 import { todayIsoDate } from '../../core/utils/format';
 
 @Component({
   selector: 'app-income-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, MoneyInputDirective],
   templateUrl: './income-form.html',
   styleUrl: './income-form.css',
 })
@@ -23,6 +25,10 @@ export class IncomeForm implements OnInit {
   private readonly router = inject(Router);
   private readonly incomeService = inject(IncomeService);
   private readonly toast = inject(ToastService);
+  private readonly providerService = inject(ProviderService);
+
+  readonly providers = this.providerService.providers;
+  readonly legacyProvider = signal<string | null>(null);
 
   private incomeId: string | null = null;
 
@@ -38,11 +44,13 @@ export class IncomeForm implements OnInit {
       [Validators.required, Validators.min(0.01)],
     ],
     incomeDate: [todayIsoDate()],
-    source: ['', [Validators.maxLength(100)]],
+    providerId: [''],
     notes: [''],
   });
 
   ngOnInit(): void {
+    this.providerService.load().subscribe();
+
     const id = this.route.snapshot.paramMap.get('id');
 
     if (!id) {
@@ -62,9 +70,12 @@ export class IncomeForm implements OnInit {
             description: income.description ?? '',
             amount: Number(income.amount),
             incomeDate: income.incomeDate.slice(0, 10),
-            source: income.source ?? '',
+            providerId: income.providerId ?? '',
             notes: income.notes ?? '',
           });
+          this.legacyProvider.set(
+            income.providerId ? null : (income.source ?? null),
+          );
         },
         error: () =>
           this.formError.set('No se pudo cargar el ingreso solicitado.'),
@@ -82,7 +93,7 @@ export class IncomeForm implements OnInit {
       description: value.description.trim() || undefined,
       amount: value.amount as number,
       incomeDate: value.incomeDate || undefined,
-      source: value.source.trim() || undefined,
+      providerId: value.providerId || undefined,
       notes: value.notes.trim() || undefined,
     };
 
@@ -111,7 +122,7 @@ export class IncomeForm implements OnInit {
     });
   }
 
-  invalid(controlName: 'description' | 'amount' | 'source'): boolean {
+  invalid(controlName: 'description' | 'amount'): boolean {
     const control = this.form.controls[controlName];
 
     return control.invalid && (control.touched || control.dirty);

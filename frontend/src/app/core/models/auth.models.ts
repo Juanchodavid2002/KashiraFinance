@@ -22,6 +22,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  username?: string | null;
   currency: Currency;
   createdAt: string;
 }
@@ -32,15 +33,26 @@ export interface AuthResponse {
 }
 
 export interface LoginPayload {
-  email: string;
+  identifier: string;
   password: string;
 }
 
 export interface RegisterPayload {
   name: string;
   email: string;
+  username?: string;
   password: string;
   currency?: Currency;
+}
+
+export interface UpdateProfilePayload {
+  name?: string;
+  username?: string;
+}
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
 }
 
 export interface MessageResponse {

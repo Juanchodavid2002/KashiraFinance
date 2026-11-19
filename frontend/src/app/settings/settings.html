@@ -1,42 +1,302 @@
 <section class="page-narrow">
   <h1>Configuración</h1>
 
-  <div class="card">
-    <div class="card-head">
-      <div>
-        <div class="card-title">Moneda</div>
-        <div class="card-subtitle">
-          Elige la moneda con la que verás tus montos en toda la aplicación.
+
+  <div class="settings-shell">
+    <div class="settings-content">
+    @if (activeModule() === 'cuenta') {
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Perfil</div>
+          <div class="card-subtitle">Tus datos de acceso a la aplicación.</div>
         </div>
       </div>
-    </div>
 
-    <div class="field">
-      <label for="currency">Moneda de visualización</label>
-      <select
-        id="currency"
-        [value]="selectedCurrency()"
-        (change)="onCurrencyChange($any($event.target).value)"
+      <div class="account-grid">
+        <div class="field">
+          <label for="profileName">Nombre</label>
+          <input
+            id="profileName"
+            type="text"
+            maxlength="80"
+            [ngModel]="profileName()"
+            (ngModelChange)="profileName.set($event)"
+          />
+        </div>
+
+        <div class="field">
+          <label for="profileUsername">Usuario</label>
+          <input
+            id="profileUsername"
+            type="text"
+            maxlength="30"
+            placeholder="Elige un usuario para iniciar sesión"
+            autocomplete="username"
+            [ngModel]="profileUsername()"
+            (ngModelChange)="profileUsername.set($event)"
+          />
+        </div>
+
+        <div class="field">
+          <label for="profileEmail">Correo</label>
+          <input id="profileEmail" type="email" [value]="user()?.email ?? ''" disabled />
+        </div>
+
+        <div class="field">
+          <label for="profilePassword">Contraseña</label>
+          <input id="profilePassword" type="password" value="••••••••" disabled />
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="btn-primary save-btn"
+        [disabled]="!profileChanged() || profileBusy()"
+        (click)="saveProfile()"
       >
-        @for (c of currencies; track c) {
-          <option [value]="c">{{ currencyLabels[c] }}</option>
-        }
-      </select>
+        {{ profileBusy() ? 'Guardando…' : 'Guardar cambios' }}
+      </button>
     </div>
 
-    @if (saving()) {
-      <p class="hint">Guardando…</p>
+    <div class="card section-gap">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Cambiar contraseña</div>
+          <div class="card-subtitle">
+            Usa mínimo 8 caracteres. Necesitas tu contraseña actual.
+          </div>
+        </div>
+      </div>
+
+      <form class="account-grid" (ngSubmit)="changePassword()">
+        <div class="field span-2">
+          <label for="currentPassword">Contraseña actual</label>
+          <input
+            id="currentPassword"
+            name="currentPassword"
+            [type]="showPasswords() ? 'text' : 'password'"
+            autocomplete="current-password"
+            [ngModel]="currentPassword()"
+            (ngModelChange)="currentPassword.set($event)"
+          />
+        </div>
+
+        <div class="field">
+          <label for="newPassword">Nueva contraseña</label>
+          <input
+            id="newPassword"
+            name="newPassword"
+            [type]="showPasswords() ? 'text' : 'password'"
+            autocomplete="new-password"
+            maxlength="72"
+            [ngModel]="newPassword()"
+            (ngModelChange)="newPassword.set($event)"
+          />
+        </div>
+
+        <div class="field">
+          <label for="confirmPassword">Confirmar nueva contraseña</label>
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            [type]="showPasswords() ? 'text' : 'password'"
+            autocomplete="new-password"
+            maxlength="72"
+            [ngModel]="confirmPassword()"
+            (ngModelChange)="confirmPassword.set($event)"
+          />
+        </div>
+
+        <label class="show-pass span-2">
+          <input
+            type="checkbox"
+            name="showPasswords"
+            [ngModel]="showPasswords()"
+            (ngModelChange)="showPasswords.set($event)"
+          />
+          Mostrar contraseñas
+        </label>
+
+        @if (passwordError(); as err) {
+          <p class="save-msg error span-2">{{ err }}</p>
+        }
+
+        <div class="span-2">
+          <button
+            type="submit"
+            class="btn-primary save-btn"
+            [disabled]="passwordBusy()"
+          >
+            {{ passwordBusy() ? 'Actualizando…' : 'Cambiar contraseña' }}
+          </button>
+        </div>
+      </form>
+    </div>
     }
 
-    @if (message(); as msg) {
-      <p class="save-msg" [class.success]="msg.type === 'success'" [class.error]="msg.type === 'error'">
-        {{ msg.text }}
+    @if (activeModule() === 'general') {
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Moneda</div>
+          <div class="card-subtitle">
+            Elige la moneda con la que verás tus montos en toda la aplicación.
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="currency">Moneda de visualización</label>
+        <select
+          id="currency"
+          [value]="selectedCurrency()"
+          (change)="onCurrencyChange($any($event.target).value)"
+        >
+          @for (c of currencies; track c) {
+            <option [value]="c">{{ currencyLabels[c] }}</option>
+          }
+        </select>
+      </div>
+
+      @if (saving()) {
+        <p class="hint">Guardando…</p>
+      }
+
+      @if (message(); as msg) {
+        <p class="save-msg" [class.success]="msg.type === 'success'" [class.error]="msg.type === 'error'">
+          {{ msg.text }}
+        </p>
+      }
+
+      <p class="note">
+        El cambio de moneda solo afecta cómo se presentan los montos (símbolo y
+        formato). El valor numérico de tus ingresos y gastos no se convierte.
       </p>
+    </div>
+
+    <div class="card section-gap">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Apariencia</div>
+          <div class="card-subtitle">
+            Elige el tema de la aplicación. "Automático" sigue el de tu dispositivo.
+          </div>
+        </div>
+      </div>
+
+      <div class="theme-options" role="radiogroup" aria-label="Tema">
+        @for (option of themeOptions; track option.id) {
+          <button
+            type="button"
+            role="radio"
+            class="theme-option"
+            [class.active]="themePreference() === option.id"
+            [attr.aria-checked]="themePreference() === option.id"
+            (click)="setTheme(option.id)"
+          >
+            <span class="theme-icon" aria-hidden="true">{{ option.icon }}</span>
+            {{ option.label }}
+          </button>
+        }
+      </div>
+    </div>
     }
 
-    <p class="note">
-      El cambio de moneda solo afecta cómo se presentan los montos (símbolo y
-      formato). El valor numérico de tus ingresos y gastos no se convierte.
-    </p>
+    @if (activeModule() === 'proveedores') {
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Proveedores</div>
+          <div class="card-subtitle">
+            Empresas, bancos o personas con quienes tienes ingresos o deudas. Los eliges al registrar un ingreso o una deuda.
+          </div>
+        </div>
+      </div>
+
+      <form class="source-add" (ngSubmit)="addProvider()">
+        <input
+          type="text"
+          name="newProvider"
+          maxlength="100"
+          placeholder="Ej. Banco, proveedor, persona…"
+          [ngModel]="newProviderName()"
+          (ngModelChange)="newProviderName.set($event)"
+          aria-label="Nombre del nuevo proveedor"
+        />
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="!newProviderName().trim() || providerBusy()"
+        >
+          Agregar
+        </button>
+      </form>
+
+      @if (providers().length === 0) {
+        <p class="hint">Aún no tienes proveedores. Agrega el primero.</p>
+      } @else {
+        <ul class="source-list">
+          @for (provider of providers(); track provider.id) {
+            <li>
+              @if (editingProviderId() === provider.id) {
+                <input
+                  type="text"
+                  maxlength="100"
+                  class="edit-input"
+                  [ngModel]="editingProviderName()"
+                  (ngModelChange)="editingProviderName.set($event)"
+                  (keydown.enter)="saveProvider(provider)"
+                  (keydown.escape)="cancelEditProvider()"
+                  aria-label="Editar nombre del proveedor"
+                />
+                <div class="row-actions">
+                  <button type="button" class="link-btn" (click)="saveProvider(provider)">
+                    Guardar
+                  </button>
+                  <button type="button" class="link-btn muted" (click)="cancelEditProvider()">
+                    Cancelar
+                  </button>
+                </div>
+              } @else {
+                <div class="source-name">
+                  <strong>{{ provider.name }}</strong>
+                  <small>{{ provider.incomeCount }} ingreso(s) · {{ provider.debtCount }} deuda(s)</small>
+                </div>
+                <div class="row-actions">
+                  <button type="button" class="link-btn" (click)="startEditProvider(provider)">
+                    Editar
+                  </button>
+                  <button type="button" class="link-btn danger" (click)="removeProvider(provider)">
+                    Eliminar
+                  </button>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+    }
+
+    @if (activeModule() === 'categorias') {
+    <app-category-list />
+    }
+    </div>
+
+    <nav class="settings-nav" role="tablist" aria-label="Módulos de configuración" aria-orientation="vertical">
+      @for (m of modules; track m.id) {
+        <button
+          type="button"
+          role="tab"
+          class="module-tab"
+          [class.active]="activeModule() === m.id"
+          [attr.aria-selected]="activeModule() === m.id"
+          (click)="selectModule(m.id)"
+        >
+          <span aria-hidden="true">{{ m.icon }}</span> {{ m.label }}
+        </button>
+      }
+    </nav>
   </div>
 </section>

@@ -6,7 +6,7 @@
 
 /* ============ SIDEBAR ============ */
 .sidebar {
-  background: #0b1020;
+  background: var(--sidebar-bg);
   color: #cbd5e1;
   padding: 24px 16px;
   position: sticky;
@@ -79,7 +79,7 @@
 }
 
 .nav-link:hover {
-  background: #151b33;
+  background: var(--sidebar-raised);
   color: white;
 }
 
@@ -113,7 +113,7 @@
   gap: 12px;
   padding: 10px;
   border-radius: 12px;
-  background: #151b33;
+  background: var(--sidebar-raised);
   margin-bottom: 12px;
 }
 
@@ -210,7 +210,7 @@
   height: 40px;
   border-radius: 10px;
   border: 1px solid var(--color-border);
-  background: white;
+  background: var(--color-surface);
   cursor: pointer;
   display: grid;
   place-items: center;

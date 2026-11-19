@@ -13,10 +13,16 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription, finalize } from 'rxjs';
 
+import { ProviderService } from '../../core/services/provider.service';
 import { DebtService } from '../../core/services/debt.service';
 import { ToastService } from '../../core/services/toast.service';
 import { todayIsoDate } from '../../core/utils/format';
-import type { DebtKind, InterestType } from '../../core/models/debt.models';
+import type {
+  DebtKind,
+  InterestPeriod,
+  InterestType,
+} from '../../core/models/debt.models';
+import { MoneyInputDirective } from '../../core/directives/money-input.directive';
 
 function addMonths(isoDate: string, months: number): string {
   const [y, m, d] = isoDate.split('-').map(Number);
@@ -32,7 +38,7 @@ function addMonths(isoDate: string, months: number): string {
 
 @Component({
   selector: 'app-debt-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, MoneyInputDirective],
   templateUrl: './debt-form.html',
   styleUrl: './debt-form.css',
 })
@@ -42,6 +48,10 @@ export class DebtForm implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly debtService = inject(DebtService);
   private readonly toast = inject(ToastService);
+  private readonly providerService = inject(ProviderService);
+
+  readonly providers = this.providerService.providers;
+  readonly legacyLender = signal<string | null>(null);
 
   private readonly valueSubscription: Subscription;
 
@@ -57,8 +67,10 @@ export class DebtForm implements OnInit, OnDestroy {
   readonly form = this.fb.group({
     kind: ['ENTITY' as DebtKind, [Validators.required]],
     interestType: ['NONE' as InterestType, [Validators.required]],
+    interestRate: [null as number | null],
+    interestPeriod: ['MONTHLY' as InterestPeriod],
     name: ['', [Validators.required, Validators.maxLength(200)]],
-    lender: ['', [Validators.maxLength(200)]],
+    providerId: [''],
     totalAmount: [
       null as number | null,
       [Validators.required, Validators.min(0.01)],
@@ -87,6 +99,8 @@ export class DebtForm implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.providerService.load().subscribe();
+
     const id = this.route.snapshot.paramMap.get('id');
 
     if (!id) {
@@ -108,8 +122,10 @@ export class DebtForm implements OnInit, OnDestroy {
             {
               kind: debt.kind,
               interestType: debt.interestType ?? 'NONE',
+              interestRate: debt.interestRate ? Number(debt.interestRate) : null,
+              interestPeriod: debt.interestPeriod ?? 'MONTHLY',
               name: debt.name,
-              lender: debt.lender ?? '',
+              providerId: debt.providerId ?? '',
               totalAmount: Number(debt.totalAmount),
               totalInstallments: debt.totalInstallments ?? null,
               paidInstallments: debt.paidInstallments ?? null,
@@ -122,6 +138,8 @@ export class DebtForm implements OnInit, OnDestroy {
             },
             { emitEvent: false },
           );
+          this.legacyLender.set(debt.providerId ? null : (debt.lender ?? null));
+          this.applyInterestValidators();
           this.syncDueDate();
           this.updateDueDateLabel();
         },
@@ -142,6 +160,28 @@ export class DebtForm implements OnInit, OnDestroy {
 
   setInterestType(interestType: InterestType): void {
     this.form.controls.interestType.setValue(interestType);
+    this.applyInterestValidators();
+  }
+
+  readonly hasInterest = (): boolean =>
+    this.form.controls.interestType.value === 'WITH_INTEREST';
+
+  /** La tasa es obligatoria solo cuando la deuda tiene interés. */
+  private applyInterestValidators(): void {
+    const rate = this.form.controls.interestRate;
+
+    if (this.hasInterest()) {
+      rate.setValidators([
+        Validators.required,
+        Validators.min(0.01),
+        Validators.max(999),
+      ]);
+    } else {
+      rate.clearValidators();
+      rate.setValue(null);
+    }
+
+    rate.updateValueAndValidity();
   }
 
   syncDueDate(): void {
@@ -182,8 +222,12 @@ export class DebtForm implements OnInit, OnDestroy {
     const payload = {
       kind: value.kind as DebtKind,
       interestType: value.interestType as InterestType,
+      interestRate: value.interestType === 'WITH_INTEREST' && value.interestRate !== null
+        ? value.interestRate
+        : undefined,
+      interestPeriod: value.interestType === 'WITH_INTEREST' ? value.interestPeriod : undefined,
       name: value.name.trim(),
-      lender: value.lender.trim() || undefined,
+      providerId: value.providerId || undefined,
       totalAmount: value.totalAmount as number,
       totalInstallments:
         value.totalInstallments !== null ? value.totalInstallments : undefined,
@@ -230,7 +274,7 @@ export class DebtForm implements OnInit, OnDestroy {
   invalid(
     controlName:
       | 'name'
-      | 'lender'
+      | 'interestRate'
       | 'totalAmount'
       | 'totalInstallments'
       | 'paidInstallments'

@@ -5,6 +5,7 @@ import {
   IsString,
   IsEnum,
   IsOptional,
+  Matches,
 } from 'class-validator';
 import { Currency } from '@prisma/client';
 
@@ -13,6 +14,15 @@ export class RegisterDto {
   @MinLength(2)
   @MaxLength(80)
   name!: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(30)
+  @Matches(/^[a-zA-Z0-9_.]+$/, {
+    message: 'El usuario solo admite letras, números, "_" y "."',
+  })
+  username?: string;
 
   @IsEmail()
   @MaxLength(120)

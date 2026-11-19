@@ -113,28 +113,28 @@
           </button>
         </div>
 
-        <div class="divider"><span>o contin&uacute;a con tu correo</span></div>
+        <div class="divider"><span>o contin&uacute;a con tu usuario</span></div>
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-          <!-- Correo electrónico -->
+          <!-- Usuario o correo -->
           <div class="field" [class.error]="
-              form.controls.email.invalid && form.controls.email.touched
+              form.controls.identifier.invalid && form.controls.identifier.touched
             ">
-            <label for="login-email">Correo electr&oacute;nico</label>
+            <label for="login-identifier">Usuario o correo</label>
             <div class="input-wrap">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                 stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="4" width="20" height="16" rx="2" />
-                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
               </svg>
-              <input id="login-email" type="email" formControlName="email" placeholder="tucorreo&#64;ejemplo.com"
-                autocomplete="email" />
+              <input id="login-identifier" type="text" formControlName="identifier" placeholder="usuario o correo"
+                autocomplete="username" />
             </div>
-            @if (form.controls.email.invalid && form.controls.email.touched) {
-            @if (form.controls.email.hasError('required')) {
-            <p class="field-msg">El correo es obligatorio</p>
+            @if (form.controls.identifier.invalid && form.controls.identifier.touched) {
+            @if (form.controls.identifier.hasError('required')) {
+            <p class="field-msg">Ingresa tu usuario o correo</p>
             } @else {
-            <p class="field-msg">Ingresa un correo v&aacute;lido</p>
+            <p class="field-msg">Debe tener al menos 3 caracteres</p>
             }
             }
           </div>

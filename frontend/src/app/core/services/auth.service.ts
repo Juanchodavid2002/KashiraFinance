@@ -12,7 +12,9 @@ import type {
   MessageResponse,
   RegisterPayload,
   ResetPasswordPayload,
+  ChangePasswordPayload,
   UpdateCurrencyPayload,
+  UpdateProfilePayload,
   User,
   VerifyResetCodePayload,
 } from '../models/auth.models';
@@ -116,6 +118,29 @@ export class AuthService {
           }
         }),
       );
+  }
+
+  updateProfile(payload: UpdateProfilePayload) {
+    return this.http
+      .patch<User>(`${this.apiUrl}/users/profile`, payload)
+      .pipe(
+        tap((updated) => {
+          const user = this.currentUserSignal();
+
+          if (user) {
+            const merged = { ...user, ...updated };
+            this.currentUserSignal.set(merged);
+            localStorage.setItem(USER_KEY, JSON.stringify(merged));
+          }
+        }),
+      );
+  }
+
+  changePassword(payload: ChangePasswordPayload) {
+    return this.http.post<MessageResponse>(
+      `${this.apiUrl}/users/change-password`,
+      payload,
+    );
   }
 
   logout(): void {

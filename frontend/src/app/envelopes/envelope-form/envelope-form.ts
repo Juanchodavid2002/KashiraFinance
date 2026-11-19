@@ -11,10 +11,11 @@ import { EnvelopeService } from '../../core/services/envelope.service';
 import { ToastService } from '../../core/services/toast.service';
 import type { EnvelopeFrequency } from '../../core/models/envelope.models';
 import { ENVELOPE_FREQUENCIES, ENVELOPE_FREQUENCY_LABELS } from '../../core/models/envelope.models';
+import { MoneyInputDirective } from '../../core/directives/money-input.directive';
 
 @Component({
   selector: 'app-envelope-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, MoneyInputDirective],
   templateUrl: './envelope-form.html',
   styleUrl: './envelope-form.css',
 })

@@ -3,7 +3,9 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { BudgetsModule } from './budgets/budgets.module';
 import { CategoriesModule } from './categories/categories.module';
+import { ProvidersModule } from './providers/providers.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { DebtsModule } from './debts/debts.module';
 import { EnvelopesModule } from './envelopes/envelopes.module';
@@ -43,9 +45,11 @@ function validateEnv(config: Record<string, unknown>): Record<string, unknown> {
     ExpensesModule,
     IncomesModule,
     DebtsModule,
+    ProvidersModule,
     EnvelopesModule,
     ServicesModule,
     SavingsModule,
+    BudgetsModule,
     DashboardModule,
   ],
   providers: [

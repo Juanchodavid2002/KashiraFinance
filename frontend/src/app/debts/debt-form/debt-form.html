@@ -1,4 +1,4 @@
-<section class="page-narrow">
+<section class="page-wide">
   <a
     [routerLink]="isEdit() ? ['/app/debts', debtId] : ['/app/debts']"
     class="back"
@@ -6,7 +6,12 @@
     ← Volver a deudas
   </a>
 
-  <h1>{{ isEdit() ? 'Editar deuda' : 'Nueva deuda' }}</h1>
+  <header class="page-head">
+    <h1>{{ isEdit() ? 'Editar deuda' : 'Nueva deuda' }}</h1>
+    <p class="page-sub">
+      Completa los datos en orden. Los campos con * son obligatorios.
+    </p>
+  </header>
 
   @if (loadingDebt()) {
     <p class="hint">Cargando deuda...</p>
@@ -17,209 +22,319 @@
       <p class="form-error">{{ formError() }}</p>
     }
 
-    <div class="field">
-      <label>Tipo de deuda *</label>
-      <div class="kind-toggle">
-        <button
-          type="button"
-          class="kind-option"
-          [class.active]="form.controls.kind.value === 'ENTITY'"
-          (click)="setKind('ENTITY')"
-        >
-          <span class="kind-icon">🏦</span>
-          <span>Entidad</span>
-        </button>
-        <button
-          type="button"
-          class="kind-option"
-          [class.active]="form.controls.kind.value === 'PERSONAL'"
-          (click)="setKind('PERSONAL')"
-        >
-          <span class="kind-icon">👤</span>
-          <span>Personal</span>
-        </button>
-      </div>
-      @if (form.controls.kind.value === 'PERSONAL') {
-        <span class="field-hint">
-          Deudas con personas (amigos, familiares, vecinos...)
-        </span>
-      } @else {
-        <span class="field-hint">
-          Deudas con bancos o financieras (Progreser, Addi...)
-        </span>
-      }
-    </div>
-
-    <div class="field">
-      <label>Tipo de interés *</label>
-      <div class="kind-toggle">
-        <button
-          type="button"
-          class="kind-option"
-          [class.active]="form.controls.interestType.value === 'NONE'"
-          (click)="setInterestType('NONE')"
-        >
-          <span class="kind-icon">🚫</span>
-          <span>Sin interés</span>
-        </button>
-        <button
-          type="button"
-          class="kind-option"
-          [class.active]="form.controls.interestType.value === 'WITH_INTEREST'"
-          (click)="setInterestType('WITH_INTEREST')"
-        >
-          <span class="kind-icon">📈</span>
-          <span>Con interés</span>
-        </button>
-      </div>
-      @if (form.controls.interestType.value === 'WITH_INTEREST') {
-        <span class="field-hint">
-          Al pagar, deberás indicar cuánto va a capital y cuánto a intereses.
-        </span>
-      } @else {
-        <span class="field-hint">
-          Cada pago reduce directamente el total de la deuda.
-        </span>
-      }
-    </div>
-
-    <div class="field">
-      <label for="name">Nombre de la deuda *</label>
-      <input
-        id="name"
-        type="text"
-        formControlName="name"
-        placeholder="Ej. Préstamo carro, tarjeta crédito..."
-      />
-      @if (invalid('name')) {
-        <span class="field-error">El nombre es obligatorio (máx. 200).</span>
-      }
-    </div>
-
-    <div class="field">
-      <label for="lender">Acreedor</label>
-      <input
-        id="lender"
-        type="text"
-        formControlName="lender"
-        placeholder="Ej. Banco, persona, entidad (opcional)"
-      />
-      @if (invalid('lender')) {
-        <span class="field-error">Máximo 200 caracteres.</span>
-      }
-    </div>
-
-    <div class="field">
-      <label for="totalAmount">Monto total de la deuda *</label>
-      <input
-        id="totalAmount"
-        type="number"
-        step="0.01"
-        min="0.01"
-        formControlName="totalAmount"
-        placeholder="Ej. 1200000"
-      />
-      @if (invalid('totalAmount')) {
-        <span class="field-error">Ingresa un monto mayor a 0.</span>
-      }
-    </div>
-
-    <div class="row">
-      <div class="field">
-        <label for="totalInstallments">Cuotas totales</label>
-        <input
-          id="totalInstallments"
-          type="number"
-          min="1"
-          step="1"
-          formControlName="totalInstallments"
-          placeholder="Ej. 36"
-        />
-        @if (invalid('totalInstallments')) {
-          <span class="field-error">Debe ser un número mayor a 1.</span>
-        }
-      </div>
-
-      <div class="field">
-        <label for="paidInstallments">Cuotas pagadas</label>
-        <input
-          id="paidInstallments"
-          type="number"
-          min="0"
-          step="1"
-          formControlName="paidInstallments"
-          placeholder="Ej. 8"
-        />
-        @if (invalid('paidInstallments')) {
-          <span class="field-error">Debe ser un número mayor o igual a 0.</span>
-        }
-      </div>
-    </div>
-
-    <div class="field">
-      <label for="installmentAmount">Valor de cada cuota</label>
-      <input
-        id="installmentAmount"
-        type="number"
-        step="0.01"
-        min="0.01"
-        formControlName="installmentAmount"
-        placeholder="Ej. 482269"
-      />
-      @if (invalid('installmentAmount')) {
-        <span class="field-error">Ingresa un valor mayor a 0.</span>
-      }
-    </div>
-
-    @if (isEntity()) {
-      <div class="row">
-        <div class="field">
-          <label for="startDate">Fecha de inicio</label>
-          <input id="startDate" type="date" formControlName="startDate" />
-        </div>
-
-        <div class="field">
-          <label for="dueDate">Fecha límite (auto)</label>
-          <input
-            id="dueDate"
-            type="date"
-            formControlName="dueDate"
-            readonly
-          />
-          <span class="field-hint">
-            Se calcula según las cuotas: inicio + cuotas restantes = vencimiento mensual.
-          </span>
+    <!-- 1. Clasificación -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-num">1</span>
+        <div>
+          <h2>Clasificación</h2>
+          <p>Con quién tienes la deuda y si genera intereses.</p>
         </div>
       </div>
-    } @else {
-      <div class="row">
-        <div class="field">
-          <label for="startDate">Fecha de inicio</label>
-          <input id="startDate" type="date" formControlName="startDate" />
-        </div>
 
+      <div class="grid grid-2">
         <div class="field">
-          <label for="dueDate">Fecha final (límite)</label>
-          <input id="dueDate" type="date" formControlName="dueDate" />
-          @if (invalid('dueDate')) {
-            <span class="field-error">Fecha no válida.</span>
+          <label>Tipo de deuda *</label>
+          <div class="kind-toggle">
+            <button
+              type="button"
+              class="kind-option"
+              [class.active]="form.controls.kind.value === 'ENTITY'"
+              (click)="setKind('ENTITY')"
+            >
+              <span class="kind-icon">🏦</span>
+              <span>Entidad</span>
+            </button>
+            <button
+              type="button"
+              class="kind-option"
+              [class.active]="form.controls.kind.value === 'PERSONAL'"
+              (click)="setKind('PERSONAL')"
+            >
+              <span class="kind-icon">👤</span>
+              <span>Personal</span>
+            </button>
+          </div>
+          @if (form.controls.kind.value === 'PERSONAL') {
+            <span class="field-hint">
+              Deudas con personas (amigos, familiares, vecinos...)
+            </span>
+          } @else {
+            <span class="field-hint">
+              Deudas con bancos o financieras (Progreser, Addi...)
+            </span>
           }
+        </div>
+
+        <div class="field">
+          <label>Tipo de interés *</label>
+          <div class="kind-toggle">
+            <button
+              type="button"
+              class="kind-option"
+              [class.active]="form.controls.interestType.value === 'NONE'"
+              (click)="setInterestType('NONE')"
+            >
+              <span class="kind-icon">🚫</span>
+              <span>Sin interés</span>
+            </button>
+            <button
+              type="button"
+              class="kind-option"
+              [class.active]="form.controls.interestType.value === 'WITH_INTEREST'"
+              (click)="setInterestType('WITH_INTEREST')"
+            >
+              <span class="kind-icon">📈</span>
+              <span>Con interés</span>
+            </button>
+          </div>
+          @if (form.controls.interestType.value === 'WITH_INTEREST') {
+            <span class="field-hint">
+              Al pagar, deberás indicar cuánto va a capital y cuánto a intereses.
+            </span>
+          } @else {
+            <span class="field-hint">
+              Cada pago reduce directamente el total de la deuda.
+            </span>
+          }
+        </div>
+      </div>
+    </div>
+
+    @if (hasInterest()) {
+      <div class="section interest-section">
+        <div class="section-head">
+          <span class="section-num">%</span>
+          <div>
+            <h2>Tasa de interés</h2>
+            <p>De cuánto es el interés que te cobran.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="field">
+            <label for="interestRate">Tasa de interés (%) *</label>
+            <input
+              id="interestRate"
+              type="text"
+              appMoneyInput
+              formControlName="interestRate"
+              placeholder="Ej. 2,5"
+            />
+            @if (invalid('interestRate')) {
+              <span class="field-error">Ingresa una tasa mayor a 0 (máx. 999).</span>
+            }
+          </div>
+
+          <div class="field">
+            <label for="interestPeriod">Periodo de la tasa</label>
+            <select id="interestPeriod" formControlName="interestPeriod">
+              <option value="MONTHLY">Mensual</option>
+              <option value="ANNUAL">Anual</option>
+            </select>
+          </div>
         </div>
       </div>
     }
 
-    <div class="field">
-      <label for="notes">Notas</label>
-      <textarea
-        id="notes"
-        rows="3"
-        formControlName="notes"
-        placeholder="Detalles adicionales (opcional)"
-      ></textarea>
+    <!-- 2. Información general -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-num">2</span>
+        <div>
+          <h2>Información general</h2>
+          <p>Cómo identificarás esta deuda.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="field">
+          <label for="name">Nombre de la deuda *</label>
+          <input
+            id="name"
+            type="text"
+            formControlName="name"
+            placeholder="Ej. Préstamo carro, tarjeta crédito..."
+          />
+          @if (invalid('name')) {
+            <span class="field-error">El nombre es obligatorio (máx. 200).</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="providerId">Proveedor (acreedor)</label>
+          <select id="providerId" formControlName="providerId">
+            <option value="">Sin proveedor</option>
+            @for (provider of providers(); track provider.id) {
+              <option [value]="provider.id">{{ provider.name }}</option>
+            }
+          </select>
+          @if (legacyLender(); as legacy) {
+            <span class="field-hint">
+              Proveedor anterior: «{{ legacy }}». Elige uno de tu lista para ligarlo.
+            </span>
+          }
+          @if (providers().length === 0) {
+            <span class="field-hint">
+              Aún no tienes proveedores.
+              <a routerLink="/app/configuracion" [queryParams]="{ modulo: 'proveedores' }">Créalos en Configuración</a>.
+            </span>
+          }
+        </div>
+      </div>
     </div>
 
-    <button type="submit" class="btn-primary" [disabled]="saving()">
-      {{ saving() ? 'Guardando...' : isEdit() ? 'Guardar cambios' : 'Registrar deuda' }}
-    </button>
+    <!-- 3. Montos y cuotas -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-num">3</span>
+        <div>
+          <h2>Montos y cuotas</h2>
+          <p>El valor de la deuda y, si aplica, su plan de pagos.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="field">
+          <label for="totalAmount">Monto total de la deuda *</label>
+          <input
+            id="totalAmount"
+            type="text"
+ appMoneyInput
+            formControlName="totalAmount"
+            placeholder="Ej. 1200000"
+          />
+          @if (invalid('totalAmount')) {
+            <span class="field-error">Ingresa un monto mayor a 0.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="installmentAmount">Valor de cada cuota</label>
+          <input
+            id="installmentAmount"
+            type="text"
+ appMoneyInput
+            formControlName="installmentAmount"
+            placeholder="Ej. 482269"
+          />
+          @if (invalid('installmentAmount')) {
+            <span class="field-error">Ingresa un valor mayor a 0.</span>
+          }
+        </div>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="field">
+          <label for="totalInstallments">Cuotas totales</label>
+          <input
+            id="totalInstallments"
+            type="number"
+            min="1"
+            step="1"
+            formControlName="totalInstallments"
+            placeholder="Ej. 36"
+          />
+          @if (invalid('totalInstallments')) {
+            <span class="field-error">Debe ser un número mayor a 1.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="paidInstallments">Cuotas pagadas</label>
+          <input
+            id="paidInstallments"
+            type="number"
+            min="0"
+            step="1"
+            formControlName="paidInstallments"
+            placeholder="Ej. 8"
+          />
+          @if (invalid('paidInstallments')) {
+            <span class="field-error">Debe ser un número mayor o igual a 0.</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Fechas -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-num">4</span>
+        <div>
+          <h2>Fechas</h2>
+          <p>
+            @if (isEntity()) {
+              El vencimiento se calcula con las cuotas restantes.
+            } @else {
+              Indica hasta cuándo debes pagarla.
+            }
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="field">
+          <label for="startDate">Fecha de inicio</label>
+          <input id="startDate" type="date" formControlName="startDate" />
+        </div>
+
+        @if (isEntity()) {
+          <div class="field">
+            <label for="dueDate">Fecha límite (auto)</label>
+            <input
+              id="dueDate"
+              type="date"
+              formControlName="dueDate"
+              readonly
+            />
+            <span class="field-hint">
+              Inicio + cuotas restantes = vencimiento mensual.
+            </span>
+          </div>
+        } @else {
+          <div class="field">
+            <label for="dueDate">Fecha final (límite)</label>
+            <input id="dueDate" type="date" formControlName="dueDate" />
+            @if (invalid('dueDate')) {
+              <span class="field-error">Fecha no válida.</span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- 5. Notas -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-num">5</span>
+        <div>
+          <h2>Notas</h2>
+          <p>Cualquier detalle que quieras recordar (opcional).</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <textarea
+          id="notes"
+          rows="3"
+          formControlName="notes"
+          aria-label="Notas"
+          placeholder="Detalles adicionales (opcional)"
+        ></textarea>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a
+        [routerLink]="isEdit() ? ['/app/debts', debtId] : ['/app/debts']"
+        class="btn-cancel"
+      >
+        Cancelar
+      </a>
+      <button type="submit" class="btn-primary" [disabled]="saving()">
+        {{ saving() ? 'Guardando...' : isEdit() ? 'Guardar cambios' : 'Registrar deuda' }}
+      </button>
+    </div>
   </form>
 </section>

@@ -1,0 +1,70 @@
+<section class="page-narrow">
+  <header class="head">
+    <h1>Presupuesto</h1>
+    <p class="head-sub">
+      Simula ingresos y gastos futuros como en una hoja de cálculo. No modifica
+      tus ingresos ni gastos reales.
+    </p>
+  </header>
+
+  <form class="new-budget" (ngSubmit)="create()">
+    <input
+      type="text"
+      name="newBudget"
+      maxlength="100"
+      placeholder="Nombre del presupuesto. Ej. Diciembre, Con la moto nueva…"
+      [ngModel]="newName()"
+      (ngModelChange)="newName.set($event)"
+      aria-label="Nombre del nuevo presupuesto"
+    />
+    <button
+      type="submit"
+      class="btn-primary"
+      [disabled]="!newName().trim() || creating()"
+    >
+      Crear presupuesto
+    </button>
+  </form>
+
+  @if (error()) {
+    <p class="form-error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="hint">Cargando presupuestos…</p>
+  } @else if (budgets().length === 0) {
+    <p class="hint">
+      Aún no tienes presupuestos. Crea el primero para planear cuánto puedes
+      gastar con tus ingresos.
+    </p>
+  } @else {
+    <ul class="budget-items">
+      @for (budget of budgets(); track budget.id) {
+        <li class="budget-item">
+          <a [routerLink]="['/app/budgets', budget.id]" class="budget-main">
+            <strong class="budget-name">{{ budget.name }}</strong>
+            <span class="budget-meta">
+              {{ budget.lineCount }} fila(s) · Ingresos
+              {{ format(budget.totalIncome) }} · Gastos
+              {{ format(budget.totalExpense) }}
+            </span>
+          </a>
+
+          <div class="budget-balance" [class.negative]="isNegative(budget.balance)">
+            <small>Saldo</small>
+            <strong>{{ format(budget.balance) }}</strong>
+          </div>
+
+          <div class="row-actions">
+            <button type="button" class="link-btn" (click)="duplicate(budget)">
+              Duplicar
+            </button>
+            <button type="button" class="link-btn danger" (click)="remove(budget)">
+              Eliminar
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

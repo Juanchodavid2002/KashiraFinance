@@ -16,10 +16,11 @@ import type {
   ServiceDetail,
   ServicePayment,
 } from '../../core/models/service.models';
+import { MoneyInputDirective } from '../../core/directives/money-input.directive';
 
 @Component({
   selector: 'app-service-detail',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, MoneyInputDirective],
   templateUrl: './service-detail.html',
   styleUrl: './service-detail.css',
 })

@@ -27,10 +27,11 @@ import type {
   Category,
   PaymentMethod,
 } from '../../core/models/expense.models';
+import { MoneyInputDirective } from '../../core/directives/money-input.directive';
 
 @Component({
   selector: 'app-envelope-detail',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, MoneyInputDirective],
   templateUrl: './envelope-detail.html',
   styleUrl: './envelope-detail.css',
 })

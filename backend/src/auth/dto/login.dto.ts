@@ -1,9 +1,23 @@
-import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+  ValidateIf,
+} from 'class-validator';
 
 export class LoginDto {
-  @IsEmail()
+  /** Usuario o correo. Se acepta `email` como alias por compatibilidad. */
+  @ValidateIf((dto: LoginDto) => dto.email === undefined)
+  @IsString()
+  @MinLength(3)
   @MaxLength(120)
-  email!: string;
+  identifier?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  email?: string;
 
   @IsString()
   @MinLength(8)

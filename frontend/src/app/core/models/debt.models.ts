@@ -4,13 +4,18 @@ export type DebtKind = 'ENTITY' | 'PERSONAL';
 
 export type InterestType = 'NONE' | 'WITH_INTEREST';
 
+export type InterestPeriod = 'MONTHLY' | 'ANNUAL';
+
 export interface Debt {
   id: string;
   userId: string;
   kind: DebtKind;
   interestType: InterestType;
+  interestRate: string | null;
+  interestPeriod: InterestPeriod | null;
   name: string;
   lender: string | null;
+  providerId: string | null;
   totalAmount: string;
   paidAmount: string;
   remainingAmount: string;
@@ -64,8 +69,11 @@ export interface DebtFilters {
 export interface CreateDebtPayload {
   kind: DebtKind;
   interestType?: InterestType;
+  interestRate?: number;
+  interestPeriod?: InterestPeriod;
   name: string;
   lender?: string;
+  providerId?: string;
   totalAmount: number;
   totalInstallments?: number;
   paidInstallments?: number;
@@ -78,8 +86,11 @@ export interface CreateDebtPayload {
 export interface UpdateDebtPayload {
   kind?: DebtKind;
   interestType?: InterestType;
+  interestRate?: number;
+  interestPeriod?: InterestPeriod;
   name?: string;
   lender?: string;
+  providerId?: string;
   totalAmount?: number;
   totalInstallments?: number;
   paidInstallments?: number;

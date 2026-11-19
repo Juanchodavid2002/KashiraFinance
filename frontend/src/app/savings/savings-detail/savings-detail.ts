@@ -16,10 +16,11 @@ import type {
   SavingsDetail,
   SavingsMovement,
 } from '../../core/models/savings.models';
+import { MoneyInputDirective } from '../../core/directives/money-input.directive';
 
 @Component({
   selector: 'app-savings-detail',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, MoneyInputDirective],
   templateUrl: './savings-detail.html',
   styleUrl: './savings-detail.css',
 })

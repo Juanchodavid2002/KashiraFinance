@@ -4,6 +4,7 @@ export interface Income {
   amount: string;
   incomeDate: string;
   source: string | null;
+  providerId: string | null;
   notes: string | null;
   createdAt: string;
   updatedAt: string;
@@ -35,6 +36,7 @@ export interface CreateIncomePayload {
   amount: number;
   incomeDate?: string;
   source?: string;
+  providerId?: string;
   notes?: string;
 }
 
@@ -43,5 +45,6 @@ export interface UpdateIncomePayload {
   amount?: number;
   incomeDate?: string;
   source?: string;
+  providerId?: string;
   notes?: string;
 }

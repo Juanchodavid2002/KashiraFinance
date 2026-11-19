@@ -11,6 +11,7 @@ const INCOME_SELECT = {
   amount: true,
   incomeDate: true,
   source: true,
+  providerId: true,
   notes: true,
   createdAt: true,
   updatedAt: true,
@@ -64,6 +65,8 @@ export class IncomesService {
   }
 
   async create(userId: string, dto: CreateIncomeDto) {
+    const sourceName = await this.resolveProviderName(userId, dto.providerId);
+
     return this.prisma.income.create({
       data: {
         userId,
@@ -72,7 +75,8 @@ export class IncomesService {
         incomeDate: toDateOnly(
           dto.incomeDate ?? new Date().toISOString().slice(0, 10),
         ),
-        source: dto.source,
+        source: sourceName ?? dto.source,
+        providerId: dto.providerId,
         notes: dto.notes,
       },
       select: INCOME_SELECT,
@@ -82,6 +86,8 @@ export class IncomesService {
   async update(userId: string, id: string, dto: UpdateIncomeDto) {
     await this.getById(userId, id);
 
+    const sourceName = await this.resolveProviderName(userId, dto.providerId);
+
     return this.prisma.income.update({
       where: { id },
       data: {
@@ -90,7 +96,8 @@ export class IncomesService {
           dto.amount !== undefined ? new Prisma.Decimal(dto.amount) : undefined,
         incomeDate:
           dto.incomeDate !== undefined ? toDateOnly(dto.incomeDate) : undefined,
-        source: dto.source,
+        source: sourceName ?? dto.source,
+        providerId: dto.providerId,
         notes: dto.notes,
       },
       select: INCOME_SELECT,
@@ -105,6 +112,27 @@ export class IncomesService {
     if (deleted.count === 0) {
       throw new NotFoundException('Ingreso no encontrado');
     }
+  }
+
+  /** Valida que el proveedor sea del usuario y devuelve su nombre. */
+  private async resolveProviderName(
+    userId: string,
+    providerId?: string,
+  ): Promise<string | undefined> {
+    if (!providerId) {
+      return undefined;
+    }
+
+    const source = await this.prisma.provider.findFirst({
+      where: { id: providerId, userId },
+      select: { name: true },
+    });
+
+    if (!source) {
+      throw new NotFoundException('Proveedor no válido');
+    }
+
+    return source.name;
   }
 
   private buildWhere(

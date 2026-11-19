@@ -69,7 +69,7 @@
         </div>
       </div>
 
-      <div class="stat-card">
+      <a routerLink="/app/incomes" class="stat-card link-card" aria-label="Ver módulo de ingresos">
         <div class="stat-head">
           <span class="stat-label">Ingresos</span>
           <div class="stat-icon income">↑</div>
@@ -78,9 +78,9 @@
         <div class="stat-trend">
           <span class="trend-pill up">Este mes</span>
         </div>
-      </div>
+      </a>
 
-      <div class="stat-card">
+      <a routerLink="/app/expenses" class="stat-card link-card" aria-label="Ver módulo de gastos">
         <div class="stat-head">
           <span class="stat-label">Gastos</span>
           <div class="stat-icon expense">↓</div>
@@ -96,7 +96,7 @@
             <span>Este mes</span>
           }
         </div>
-      </div>
+      </a>
 
       <div class="stat-card">
         <div class="stat-head">
@@ -176,7 +176,11 @@
             <span>Registra dinero recibido</span>
           </div>
         </a>
-        <a routerLink="/app/categorias" class="action-btn">
+        <a
+          routerLink="/app/configuracion"
+          [queryParams]="{ modulo: 'categorias' }"
+          class="action-btn"
+        >
           <div class="action-icon">🏷️</div>
           <div class="action-text">
             <strong>Categorías</strong>

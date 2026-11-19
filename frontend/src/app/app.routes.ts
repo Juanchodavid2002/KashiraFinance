@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
@@ -70,10 +71,11 @@ export const routes: Routes = [
       },
       {
         path: 'categorias',
-        loadComponent: () =>
-          import('./categories/category-list/category-list').then(
-            (m) => m.CategoryList,
-          ),
+        pathMatch: 'full',
+        redirectTo: () =>
+          inject(Router).createUrlTree(['/app/configuracion'], {
+            queryParams: { modulo: 'categorias' },
+          }),
       },
       {
         path: 'envelopes',
@@ -194,6 +196,18 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./savings/savings-form/savings-form').then(
             (m) => m.SavingsForm,
+          ),
+      },
+      {
+        path: 'budgets',
+        loadComponent: () =>
+          import('./budgets/budget-list/budget-list').then((m) => m.BudgetList),
+      },
+      {
+        path: 'budgets/:id',
+        loadComponent: () =>
+          import('./budgets/budget-editor/budget-editor').then(
+            (m) => m.BudgetEditor,
           ),
       },
       {
