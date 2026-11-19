@@ -19,6 +19,22 @@ const EXPENSE_SELECT = {
   },
 } as const;
 
+const ENVELOPE_REF = {
+  envelopeMovements: {
+    select: { envelope: { select: { id: true, name: true } } },
+    take: 1,
+  },
+} as const;
+
+/** Aplana la relación con el movimiento del sobre a `envelope` (o null). */
+function withEnvelope<
+  T extends {
+    envelopeMovements: { envelope: { id: string; name: string } }[];
+  },
+>({ envelopeMovements, ...expense }: T) {
+  return { ...expense, envelope: envelopeMovements[0]?.envelope ?? null };
+}
+
 function toDateOnly(value: string): Date {
   return new Date(`${value}T00:00:00.000Z`);
 }
@@ -38,6 +54,7 @@ export class ExpensesService {
         where,
         include: {
           category: { select: { id: true, name: true, color: true } },
+          ...ENVELOPE_REF,
         },
         orderBy: [{ expenseDate: 'desc' }, { createdAt: 'desc' }],
         skip,
@@ -46,7 +63,7 @@ export class ExpensesService {
     ]);
 
     return {
-      data,
+      data: data.map(withEnvelope),
       meta: {
         total,
         page: query.page,

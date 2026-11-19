@@ -87,6 +87,9 @@
             <span class="sub">
               {{ expense.category.name }} ·
               {{ paymentLabels[expense.paymentMethod] }}
+              @if (expense.envelope) {
+                · ✉️ Sobre: {{ expense.envelope.name }}
+              }
             </span>
           </div>
 

@@ -8,7 +8,6 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { EnvelopeService } from '../../core/services/envelope.service';
-import { CategoryService } from '../../core/services/category.service';
 import { CurrencyService } from '../../core/services/currency.service';
 import { ToastService } from '../../core/services/toast.service';
 import { confirmAction } from '../../core/utils/confirm';
@@ -23,10 +22,7 @@ import type {
   EnvelopeDetail,
   EnvelopeMovement,
 } from '../../core/models/envelope.models';
-import type {
-  Category,
-  PaymentMethod,
-} from '../../core/models/expense.models';
+import type { PaymentMethod } from '../../core/models/expense.models';
 import { MoneyInputDirective } from '../../core/directives/money-input.directive';
 
 @Component({
@@ -39,7 +35,6 @@ export class EnvelopeDetailComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly envelopeService = inject(EnvelopeService);
-  private readonly categoryService = inject(CategoryService);
   private readonly currencyService = inject(CurrencyService);
   private readonly toast = inject(ToastService);
 
@@ -58,7 +53,6 @@ export class EnvelopeDetailComponent implements OnInit {
   readonly loadError = signal('');
   readonly mode = signal<'none' | 'aportar' | 'gastar'>('none');
 
-  readonly categories = signal<Category[]>([]);
   readonly paymentMethods = Object.entries(PAYMENT_METHOD_LABELS) as [
     PaymentMethod,
     string,
@@ -79,7 +73,6 @@ export class EnvelopeDetailComponent implements OnInit {
     ],
     description: [''],
     expenseDate: [todayIsoDate()],
-    categoryId: ['', [Validators.required]],
     paymentMethod: ['CASH' as PaymentMethod, [Validators.required]],
     notes: [''],
   });
@@ -90,7 +83,6 @@ export class EnvelopeDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadEnvelope();
-    this.loadCategories();
   }
 
   selectMode(next: 'aportar' | 'gastar'): void {
@@ -106,7 +98,6 @@ export class EnvelopeDetailComponent implements OnInit {
         amount: null,
         description: '',
         expenseDate: todayIsoDate(),
-        categoryId: this.envelopeCategoryId(),
         paymentMethod: 'CASH',
         notes: '',
       });
@@ -167,7 +158,6 @@ export class EnvelopeDetailComponent implements OnInit {
         amount: value.amount as number,
         description: value.description.trim() || undefined,
         expenseDate: value.expenseDate || undefined,
-        categoryId: value.categoryId,
         paymentMethod: value.paymentMethod,
         notes: value.notes.trim() || undefined,
       })
@@ -184,7 +174,6 @@ export class EnvelopeDetailComponent implements OnInit {
             amount: null,
             description: '',
             expenseDate: todayIsoDate(),
-            categoryId: this.envelopeCategoryId(),
             paymentMethod: 'CASH',
             notes: '',
           });
@@ -271,28 +260,5 @@ export class EnvelopeDetailComponent implements OnInit {
             'No se pudo cargar el sobre. Intenta de nuevo.',
           ),
       });
-  }
-
-  private loadCategories(): void {
-    this.categoryService.list().subscribe({
-      next: (categories) => {
-        this.categories.set(categories);
-        if (this.mode() === 'gastar') {
-          this.gastarForm.controls.categoryId.setValue(
-            this.envelopeCategoryId(),
-          );
-        }
-      },
-      error: () =>
-        this.formError.set('No se pudieron cargar las categorías.'),
-    });
-  }
-
-  private envelopeCategoryId(): string {
-    const category = this.categories().find(
-      (c) => c.name.toLowerCase() === 'sobres',
-    );
-
-    return category?.id ?? this.categories()[0]?.id ?? '';
   }
 }

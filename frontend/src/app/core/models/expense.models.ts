@@ -29,6 +29,11 @@ export interface ExpenseCategoryRef {
   color: string | null;
 }
 
+export interface ExpenseEnvelopeRef {
+  id: string;
+  name: string;
+}
+
 export interface Expense {
   id: string;
   description: string | null;
@@ -39,6 +44,8 @@ export interface Expense {
   createdAt: string;
   updatedAt: string;
   category: ExpenseCategoryRef;
+  /** Sobre del que salió el gasto (si se gastó desde un sobre). */
+  envelope?: ExpenseEnvelopeRef | null;
 }
 
 export interface ExpenseListMeta {

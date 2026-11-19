@@ -240,24 +240,13 @@ placeholder="Ej. 30000"
             />
           </div>
 
-          <div class="row">
-            <div class="field">
-              <label for="gastarCategoria">Categoría *</label>
-              <select id="gastarCategoria" formControlName="categoryId">
-                @for (category of categories(); track category.id) {
-                  <option [value]="category.id">{{ category.name }}</option>
-                }
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="gastarMetodo">Método de pago</label>
-              <select id="gastarMetodo" formControlName="paymentMethod">
-                @for (method of paymentMethods; track method[0]) {
-                  <option [value]="method[0]">{{ method[1] }}</option>
-                }
-              </select>
-            </div>
+          <div class="field">
+            <label for="gastarMetodo">Método de pago</label>
+            <select id="gastarMetodo" formControlName="paymentMethod">
+              @for (method of paymentMethods; track method[0]) {
+                <option [value]="method[0]">{{ method[1] }}</option>
+              }
+            </select>
           </div>
 
           <div class="field">
@@ -307,9 +296,6 @@ placeholder="Ej. 30000"
                 </strong>
                 <span class="sub">
                   {{ movement.type === 'CONTRIBUTE' ? 'Aporte' : 'Gasto' }}
-                  @if (movement.categoryName) {
-                    · {{ movement.categoryName }}
-                  }
                   @if (movement.expenseDate) {
                     · {{ formatDate(movement.expenseDate) }}
                   }
